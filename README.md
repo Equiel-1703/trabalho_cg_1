@@ -1,1 +1,1 @@
-# trabalho_cg_1
+# Trabalho 1 - Computação Gráfica
