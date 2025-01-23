@@ -1,4 +1,6 @@
 import OutputLog from "./OutputLog.js";
+import WebGL from "./WebGL.js";
+import {Color} from "./GLUtils.js";
 
 // Initializing log
 const log_div = document.getElementById('log_output');
@@ -6,17 +8,8 @@ const log = new OutputLog(log_div);
 
 // WebGL initialization
 const canvas = document.getElementById('glcanvas');
-let gl = canvas.getContext('webgl');
+const webgl = new WebGL(canvas, log);
 
-if (!gl) {
-    log.warning_log('WebGL not supported, falling back on experimental-webgl.');
-    gl = canvas.getContext('experimental-webgl');
+let clear_color = new Color(0.8, 0.8, 0.8, 1.0);
 
-    if (!gl) {
-        log.error_log('Your browser does not support WebGL.');
-        throw new Error('WebGL not supported.');
-    }
-}
-
-log.success_log('WebGL is supported and the context was created.');
-
+webgl.clearCanvas(clear_color);
