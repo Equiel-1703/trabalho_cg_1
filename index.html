@@ -19,15 +19,21 @@
     </header>
 
     <main>
-        <canvas height="450px" width="800px">
+        <canvas height="450px" width="800px" id="glcanvas">
             Seu navegador não suporta canvas.
         </canvas>
+
+        <div id="log_output">
+            <h3 id="logs_info">WebGL logs will appear here</h3>
+        </div>
     </main>
 
     <footer>
         <p>© <span id="author">HENRIQUE GABRIEL RODRIGUES</span></p>
         <p>Pelotas, 2025</p>
     </footer>
+    
+    <script type="module" src="./js/webgl_main.js"></script>
 </body>
 
 </html>

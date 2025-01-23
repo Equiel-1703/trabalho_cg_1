@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poiret+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 
 html, body {
     height: 100%;
@@ -15,18 +16,13 @@ body {
     justify-content: space-between;
 }
 
+/* Header styling */
 header {
     width: auto;
     text-align: center;
 }
 
-h1 {
-    font-family: "Poiret One", serif;
-    font-weight: 400;
-    font-style: normal;
-    font-size: 3rem;
-}
-
+/* Titles styling */
 @keyframes row-animation {
     0% {
         opacity: 0;
@@ -45,23 +41,85 @@ h1 {
     animation-fill-mode: both;
 }
 
+h1 {
+    font-family: "Poiret One", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 3rem;
+
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+}
+
 h2 {
     font-family: 'Times New Roman', Times, serif;
     font-weight: 200;
     letter-spacing: 0.25rem;
+
+    margin-top: 1rem;
+    margin-bottom: 0rem;
 }
 
+/* Main section styling */
+main {
+    margin: 3rem 0;
+    padding: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: min-content;
+    height: auto;
+}
+
+/* Canvas styling */
 canvas {
     border: 1px solid white;
 
-    margin-top: 3rem;
+    margin: 0;
     margin-bottom: 3rem;
 }
 
+/* Log styling */
+#log_output {
+    width: 100%;
+    height: 20rem;
+    box-sizing: border-box;
+
+    overflow-wrap: break-word;
+    overflow-y: scroll;
+
+    padding: 1rem;
+
+    border: 1px solid white;
+}
+
+#log_output > * {
+    font-family: "Source Code Pro", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1rem;
+
+    color: white;
+
+    margin: 0.5rem 0;
+}
+
+#logs_info {
+    margin: 1rem 0;
+    text-align: center;
+    font-weight: 700;
+}
+
+
+/*  Footer styling */
 footer {
     width: 100%;
     text-align: center;
-    margin-top: 1rem;
+    margin: 0;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
 
