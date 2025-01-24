@@ -1,3 +1,5 @@
+import VAOFactory from "./VAOFactory.js";
+
 /**
  * Represents a 3D object.
  * 
@@ -7,41 +9,21 @@
  * @param {WebGL2RenderingContext} gl - The WebGL2 context.
  */
 export default class Object3D {
-    constructor(vertices, indexes, gl, program) {
-        // Object VAO
-        this.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.vao);
+    constructor(vertices, indexes, tranform, gl, program) {
+        const config = {
+            'a_position': {
+                data: vertices,
+                components_per_attr: 3,
+                data_type: gl.FLOAT,
+                normalize: false,
+                stride: 0,
+                offset: 0
+            },
+            'index_buffer': indexes
+        };
 
-        // Create the buffers for the object data
-        this.vertex_buffer = gl.createBuffer();
-        this.index_buffer = gl.createBuffer();
-
-        // Copy the vertex data to the buffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-        // Copy the index data to the buffer
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexes, gl.STATIC_DRAW);
-
-        this.#setupVAO(gl, program);
-
-        // Unbind VAO to avoid accidental changes
-        gl.bindVertexArray(null);
-        
-        // Unbind buffers to avoid accidental changes
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    }
-
-    #setupVAO(gl, program) {
-        // Get the position attribute location
-        const position_attribute = gl.getAttribLocation(program, 'a_position');
-
-        // Enable the position attribute
-        gl.enableVertexAttribArray(position_attribute);
-
-        // Set the position attribute pointer
-        gl.vertexAttribPointer(position_attribute, 3, gl.FLOAT, false, 0, 0);
+        this.vao = VAOFactory.buildVAO(config, gl, program);
+        this.transformation_matrix = tranform;
+        this.index_count = indexes.length;
     }
 }

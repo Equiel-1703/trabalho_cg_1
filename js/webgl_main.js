@@ -2,6 +2,7 @@ import OutputLog from "./OutputLog.js";
 import {Color, WebGLUtils} from "./WebGLUtils.js";
 import FileLoader from "./FileLoader.js";
 import Object3D from "./Object3D.js";
+import GraphicsMath from "./GraphicsMath.js";
 
 // Initializing log
 const log_div = document.getElementById('log_output');
@@ -43,11 +44,17 @@ log.log('Program created.');
 // Now these configurations are saved in the VAO we can safely use the program and the VAO
 gl.useProgram(program);
 
+// Binding projection matrix
+const perspective_matrix = GraphicsMath.createProjectionMatrix(90, 1, 0.5, 1000);
+
+const pespective_uniform = gl.getUniformLocation(program, 'perspective_projection');
+gl.uniformMatrix4fv(pespective_uniform, true, perspective_matrix);
+
 // Create example object
 const triangle_vertices = new Float32Array([
-    -0.5, -0.5, 0.0,
-    0.5, -0.5, 0.0,
-    0.0, 0.5, 0.0
+    -0.5, -0.5, 1,
+    0.5, -0.5, 1,
+    0.5, 0.5, 1
 ]);
 
 const triangle_indexes = new Uint16Array([
@@ -61,8 +68,14 @@ const triangle = new Object3D(triangle_vertices, triangle_indexes, gl, program);
 // Clear the canvas
 WebGLUtils.clearCanvas(clear_color);
 
+// Binding camera matrix
+// todo
+
+// Binding object transformation matrix
+// todo
+
 // Bind the VAO
 gl.bindVertexArray(triangle.vao);
 
 // Draw the object
-gl.drawElements(gl.TRIANGLES, triangle_indexes.length, gl.UNSIGNED_SHORT, 0);
+gl.drawElements(gl.TRIANGLES, triangle.index_count, gl.UNSIGNED_SHORT, 0);
