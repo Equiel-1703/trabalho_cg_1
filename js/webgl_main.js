@@ -7,38 +7,40 @@ import GraphicsMath from "./GraphicsMath.js";
 const log_div = document.getElementById('log_output');
 const log = new OutputLog(log_div);
 
+// Initializing FileLoader and WebGLUtils
+const fl = new FileLoader(log);
+const wgl_utils = new WebGLUtils(log);
+
 // WebGL initialization
 const canvas = document.getElementById('glcanvas');
-const gl = WebGLUtils.initializeWebGLContext(canvas, log);
+const gl = wgl_utils.initializeWebGLContext(canvas);
 
 // Setup canvas
 let clear_color = new Color(0.8, 0.8, 0.8, 1.0);
-WebGLUtils.clearCanvas(clear_color);
+wgl_utils.clearCanvas(clear_color);
 
 // Loading shaders code
-const v_shader = await FileLoader.loadShader('shaders/VertexShader.glsl');
-const f_shader = await FileLoader.loadShader('shaders/FragmentShader.glsl');
+const v_shader = await fl.loadShader('shaders/VertexShader.glsl');
+const f_shader = await fl.loadShader('shaders/FragmentShader.glsl');
 
-log.log('Shaders code loaded.');
+log.success_log('main> Shaders code loaded.');
 
 // Creating shaders
-const vertex_shader = WebGLUtils.createShader(gl.VERTEX_SHADER, v_shader);
-const fragment_shader = WebGLUtils.createShader(gl.FRAGMENT_SHADER, f_shader);
+const vertex_shader = wgl_utils.createShader(gl.VERTEX_SHADER, v_shader);
+const fragment_shader = wgl_utils.createShader(gl.FRAGMENT_SHADER, f_shader);
 
 if (!vertex_shader || !fragment_shader) {
     throw new Error('Failed to create shaders.');
 }
 
-log.log('Shaders created.');
+log.success_log('main> Shaders created.');
 
 // Creating program
-const program = WebGLUtils.createProgram(vertex_shader, fragment_shader);
+const program = wgl_utils.createProgram(vertex_shader, fragment_shader);
 
 if (!program) {
     throw new Error('Failed to create program.');
 }
-
-log.log('Program created.');
 
 // Now these configurations are saved in the VAO we can safely use the program and the VAO
 gl.useProgram(program);
@@ -50,12 +52,12 @@ const pespective_uniform = gl.getUniformLocation(program, 'perspective_projectio
 gl.uniformMatrix4fv(pespective_uniform, true, perspective_matrix);
 
 // Create example object
-const cube = await FileLoader.load3DObject('objs/tinker.obj', log, gl, program);
+const cube = await fl.load3DObject('objs/tinker.obj', gl, program);
 
 // --------- Draw routine ------------
 
 // Clear the canvas
-WebGLUtils.clearCanvas(clear_color);
+wgl_utils.clearCanvas(clear_color);
 
 // Binding camera matrix
 // todo

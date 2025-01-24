@@ -1,3 +1,5 @@
+import DoLog from "./DoLog.js";
+
 export class Color {
     constructor(r, g, b, a = 1.0) {
         this.r = r;
@@ -7,44 +9,45 @@ export class Color {
     }
 }
 
-export class WebGLUtils {
-    static log = null;
-    static gl = null;
+export class WebGLUtils extends DoLog {
+    #gl = null;
 
-    static initializeWebGLContext(canvas, log) {
-        this.log = log;
+    constructor(log) {
+        super(log, 'WebGLUtils> ');
+    }
 
+    initializeWebGLContext(canvas) {
         let gl = canvas.getContext('webgl2');
 
         if (!gl) {
-            log.warning_log('WebGL2 not supported, falling back on experimental-webgl.');
+            this.LOG('WebGL2 not supported, falling back on experimental-webgl.', 'warning');
             gl = canvas.getContext('experimental-webgl');
 
             if (!gl) {
-                log.error_log('Your browser does not support WebGL2.');
+                this.LOG('Your browser does not support WebGL2.', 'error');
                 throw new Error('WebGL2 not supported.');
             }
         }
 
-        log.success_log('WebGL2 is supported and the context was created.');
+        this.LOG('WebGL2 is supported and the context was created.', 'success');
 
-        this.gl = gl;
+        this.#gl = gl;
         return gl;
     }
 
-    static clearCanvas(color, gl = this.gl) {
+    clearCanvas(color, gl = this.#gl) {
         gl.clearColor(color.r, color.g, color.b, color.a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
-    static createShader(type, source, gl = this.gl, log = this.log) {
+    createShader(type, source, gl = this.#gl) {
         let shader = gl.createShader(type);
 
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
 
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            log.error_log('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+            this.LOG('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader), 'error');
             gl.deleteShader(shader);
             return null;
         }
@@ -52,7 +55,7 @@ export class WebGLUtils {
         return shader;
     }
 
-    static createProgram(vertex_shader, fragment_shader, gl = this.gl, log = this.log) {
+    createProgram(vertex_shader, fragment_shader, gl = this.#gl) {
         const prg = gl.createProgram();
 
         gl.attachShader(prg, vertex_shader);
@@ -60,19 +63,19 @@ export class WebGLUtils {
 
         gl.linkProgram(prg);
         if (!gl.getProgramParameter(prg, gl.LINK_STATUS)) {
-            log.error_log('An error occurred linking the program: ' + gl.getProgramInfoLog(prg));
+            this.LOG('An error occurred linking the program: ' + gl.getProgramInfoLog(prg), 'error');
             gl.deleteProgram(prg);
             return null;
         }
 
         gl.validateProgram(prg);
         if (!gl.getProgramParameter(prg, gl.VALIDATE_STATUS)) {
-            log.error_log('An error occurred validating the program: ' + gl.getProgramInfoLog(prg));
+            this.LOG('An error occurred validating the program: ' + gl.getProgramInfoLog(prg), 'error');
             gl.deleteProgram(prg);
             return null;
         }
 
-        log.success_log('The program was successfully created, linked and validated.');
+        this.LOG('The program was successfully created, linked and validated.', 'success');
 
         // Now we can detach and delete the shaders to free up memory in the GPU
         gl.detachShader(prg, vertex_shader);

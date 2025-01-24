@@ -93,8 +93,6 @@ export default class VAOFactory {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, index_data, gl.STATIC_DRAW);
 
-        console.log('Index buffer configured.');
-
         // We don't unbind the index buffer here because the VAO saves the last bound index buffer
         return index_buffer;
     }
