@@ -1,7 +1,6 @@
 import OutputLog from "./OutputLog.js";
 import {Color, WebGLUtils} from "./WebGLUtils.js";
 import FileLoader from "./FileLoader.js";
-import Object3D from "./Object3D.js";
 import GraphicsMath from "./GraphicsMath.js";
 
 // Initializing log
@@ -51,17 +50,7 @@ const pespective_uniform = gl.getUniformLocation(program, 'perspective_projectio
 gl.uniformMatrix4fv(pespective_uniform, true, perspective_matrix);
 
 // Create example object
-const triangle_vertices = new Float32Array([
-    -0.5, -0.5, 1,
-    0.5, -0.5, 1,
-    0.5, 0.5, 1
-]);
-
-const triangle_indexes = new Uint16Array([
-    0, 1, 2
-]);
-
-const triangle = new Object3D(triangle_vertices, triangle_indexes, gl, program);
+const cube = await FileLoader.load3DObject('objs/tinker.obj', log, gl, program);
 
 // --------- Draw routine ------------
 
@@ -75,7 +64,7 @@ WebGLUtils.clearCanvas(clear_color);
 // todo
 
 // Bind the VAO
-gl.bindVertexArray(triangle.vao);
+gl.bindVertexArray(cube.vao);
 
 // Draw the object
-gl.drawElements(gl.TRIANGLES, triangle.index_count, gl.UNSIGNED_SHORT, 0);
+gl.drawElements(gl.TRIANGLES, cube.index_count, gl.UNSIGNED_SHORT, 0);

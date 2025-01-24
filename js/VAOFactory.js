@@ -6,6 +6,14 @@
  */
 export default class VAOFactory {
     /**
+     * The key for the index buffer in the VAO configuration.
+     * 
+     * @type {string}
+     * @static
+     */
+    static INDEX_BUFFER_KEY = 'index_buffer';
+
+    /**
      * Creates a VAO from the given configuration.
      * 
      * @param {Object} config - The configuration of the VAO.
@@ -19,7 +27,7 @@ export default class VAOFactory {
         gl.bindVertexArray(vao);
 
         for (let key in config) {
-            if (key === 'index_buffer') {
+            if (key === this.INDEX_BUFFER_KEY) {
                 this.#configureIndexBuffer(gl, config[key]);
             } else {
                 this.#configureVertexAttribute(gl, program, key, config[key]);
@@ -85,9 +93,9 @@ export default class VAOFactory {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, index_data, gl.STATIC_DRAW);
 
+        console.log('Index buffer configured.');
+
         // We don't unbind the index buffer here because the VAO saves the last bound index buffer
         return index_buffer;
     }
-
-
 }
