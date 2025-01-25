@@ -30,6 +30,14 @@ function setLightSource(light_direction, gl, program) {
 }
 
 function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, camera, start) {
+    // Reading inputs from user in HTML
+    const cam_x = parseFloat(document.getElementById('cam_x').value);
+    const cam_y = parseFloat(document.getElementById('cam_y').value);
+    const cam_z = parseFloat(document.getElementById('cam_z').value);
+
+    camera.location = new Vec4(cam_x, cam_y, cam_z, 1);
+    camera.logCameraStats(console);
+
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
     const camera_matrix = GraphicsMath.transposeMatrix(camera.getCameraMatrix());
     const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
@@ -43,9 +51,6 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
         const objects = model.getRenderableObjects(); // Get renderable objects from model
         const transformation_matrix = GraphicsMath.transposeMatrix(model.transformation_matrix); // Get transformation matrix from model
         
-        console.log('Model Transformation matrix:');
-        console.log(transformation_matrix);
-
         // Set transformation matrix (since it's the same for all objects, we can set it here)
         const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
         gl.uniformMatrix4fv(transformation_uniform, false, transformation_matrix);
@@ -53,9 +58,6 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
         for (let o in objects) {
             let obj = objects[o];
             
-            console.log('Object being rendered:');
-            console.log(obj);
-
             // Set object VAO
             gl.bindVertexArray(obj.vao);
 
@@ -68,7 +70,9 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
     const elapsed = end - start;
     
     const diff = 16.667 - elapsed; // 60 FPS
-    console.log('Elapsed time: ' + elapsed + 'ms. Aprox. ' + (1000 / elapsed) + ' FPS');
+    
+    // Update FPS counter in HTML
+    document.getElementById('fps_counter').innerText = `FPS: ${Math.round(1000 / (elapsed + diff))}`;
 
     let start_2 = performance.now();
     
@@ -138,14 +142,12 @@ async function main() {
     const clear_color = new Color(0.2, 0.2, 0.2, 1.0);
 
     // Creating camera
-    const camera = new Camera(new Vec4(0, 0, -50, 1)); // By default, the camera is at (0, 0, 0) and looking in the positive Z direction
+    const camera = new Camera(new Vec4(0, 0, 0, 1)); // By default, the camera is at (0, 0, 0) and looking in the positive Z direction
 
     // Loading 3D object
     const model = await fl.load3DObject('objs/cube.obj', gl, program);
     let model_matrix = model.transformation_matrix;
     GraphicsMath.translateMatrix(model_matrix, 0, 20, 50);
-
-    camera.logCameraStats(console);
 
     // Rendering
     const models_to_render = [model];

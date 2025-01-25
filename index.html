@@ -19,9 +19,23 @@
     </header>
 
     <main>
-        <canvas height="450px" width="800px" id="glcanvas">
-            Seu navegador não suporta canvas.
-        </canvas>
+        <div id="app_container">
+            <div id="right_menu" class="menu">
+                <div id="camera_sliders">
+                    <p>Camera</p>
+                    <input type="range" min="-100" max="100" class="slider" id="cam_x" />
+                    <input type="range" min="-100" max="100" class="slider" id="cam_y" />
+                    <input type="range" min="-100" max="100" class="slider" id="cam_z" />
+                </div>
+            </div>
+            <canvas height="450px" width="800px" id="glcanvas">
+                Seu navegador não suporta canvas.
+            </canvas>
+            <div id="left_menu" class="menu">
+                <p id="fps_counter">FPS: </p>
+            </div>
+
+        </div>
 
         <div id="log_output">
             <h3 id="logs_info">WebGL logs will appear here</h3>

@@ -1,5 +1,45 @@
 import Vec4 from './Vec4.js';
 
+/**
+ * Represents a Camera in a 3D space.
+ * 
+ * @class
+ * @classdesc This class handles the camera's location, target direction, up direction, and right direction in a 3D space.
+ * 
+ * @property {Vec4} location - The location of the camera.
+ * @property {Vec4} target_direction - The target direction of the camera.
+ * @property {Vec4} up_direction - The up direction of the camera.
+ * @property {Vec4} right_direction - The right direction of the camera.
+ * 
+ * @constructor
+ * @param {Vec4} location - The initial location of the camera.
+ * @param {Vec4} [target=Vec4.zAxis()] - The initial target direction of the camera.
+ * @param {Vec4} [up=Vec4.yAxis()] - The initial up direction of the camera.
+ * 
+ * @method get location - Get the location of the camera.
+ * @returns {Vec4} The location of the camera.
+ * 
+ * @method get target_direction - Get the target direction of the camera.
+ * @returns {Vec4} The target direction of the camera.
+ * 
+ * @method get up_direction - Get the up direction of the camera.
+ * @returns {Vec4} The up direction of the camera.
+ * 
+ * @method get right_direction - Get the right direction of the camera.
+ * @returns {Vec4} The right direction of the camera.
+ * 
+ * @method set location - Set the location of the camera.
+ * @param {Vec4} value - The new location of the camera.
+ * 
+ * @method lookAt - Adjust the camera to look at a target point.
+ * @param {Vec4} target_point - The point to look at.
+ * 
+ * @method getCameraMatrix - Get the camera matrix.
+ * @returns {Array<number>} The camera matrix.
+ * 
+ * @method logCameraStats - Log the camera's statistics.
+ * @param {Object} log - The logging object.
+ */
 export default class Camera {
     #location = Vec4.createZero();
     #target_direction = Vec4.createZero();

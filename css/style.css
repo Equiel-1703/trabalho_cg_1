@@ -60,7 +60,7 @@ h2 {
     margin-bottom: 0rem;
 }
 
-/* Main section styling */
+/********* Main section styling **************/
 main {
     margin: 3rem 0;
     padding: 0;
@@ -74,12 +74,46 @@ main {
     height: auto;
 }
 
+#app_container {
+    margin: 0;
+    margin-bottom: 1.5rem;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: auto;
+
+    background-color: rgb(20, 20, 20);
+
+    font-family: "Poiret One", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1rem;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: auto;
+
+    padding: 1rem;
+}
+
+#fps_counter {
+    text-wrap: nowrap;
+}
+
 /* Canvas styling */
 canvas {
-    border: 1px solid white;
-
     margin: 0;
-    margin-bottom: 3rem;
+    border: 1px solid white;
 }
 
 /* Log styling */
@@ -115,7 +149,7 @@ canvas {
 }
 
 
-/*  Footer styling */
+/****************  Footer styling ****************/
 footer {
     width: 100%;
     text-align: center;
