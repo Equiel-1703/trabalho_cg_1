@@ -21,7 +21,7 @@ function setProjectionMatrix(fov, aspect_ratio, near, far, gl, program) {
     const pespective_uniform = gl.getUniformLocation(program, 'u_perspective_projection');
 
     // Binding
-    gl.uniformMatrix4fv(pespective_uniform, true, perspective_matrix);
+    gl.uniformMatrix4fv(pespective_uniform, false, perspective_matrix);
 }
 
 function setLightSource(light_direction, gl, program) {
@@ -29,25 +29,31 @@ function setLightSource(light_direction, gl, program) {
     gl.uniform3fv(light_uniform, light_direction);
 }
 
-function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, camera) {
+function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, camera, start) {
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
-    const camera_matrix = camera.getCameraMatrix();
+    const camera_matrix = GraphicsMath.transposeMatrix(camera.getCameraMatrix());
     const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
-    gl.uniformMatrix4fv(camera_uniform, true, camera_matrix);
+    gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
     
     wgl_utils.clearCanvas(clear_color, gl);
     
     for (let m in models_to_render) {
         const model = models_to_render[m];
+
         const objects = model.getRenderableObjects(); // Get renderable objects from model
-        const transformation_matrix = model.transformation_matrix; // Get transformation matrix from model
+        const transformation_matrix = GraphicsMath.transposeMatrix(model.transformation_matrix); // Get transformation matrix from model
+        
+        console.log('Model Transformation matrix:');
+        console.log(transformation_matrix);
 
         // Set transformation matrix (since it's the same for all objects, we can set it here)
         const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
-        gl.uniformMatrix4fv(transformation_uniform, true, transformation_matrix);
+        gl.uniformMatrix4fv(transformation_uniform, false, transformation_matrix);
 
         for (let o in objects) {
             let obj = objects[o];
+            
+            console.log('Object being rendered:');
             console.log(obj);
 
             // Set object VAO
@@ -57,6 +63,25 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
             gl.drawArrays(gl.TRIANGLES, 0, obj.vertex_count);
         }
     }
+
+    let end = performance.now();
+    const elapsed = end - start;
+    
+    const diff = 16.667 - elapsed; // 60 FPS
+    console.log('Elapsed time: ' + elapsed + 'ms. Aprox. ' + (1000 / elapsed) + ' FPS');
+
+    let start_2 = performance.now();
+    
+    const callback = renderCallBack.bind(null, models_to_render, wgl_utils, gl, program, clear_color, camera, start_2);
+
+    if (diff > 0) {
+        setTimeout(() => {
+            requestAnimationFrame(callback, start_2);
+        }, diff);
+    } else {
+        requestAnimationFrame(callback, start_2);
+    }
+        
 }
 
 async function main() {
@@ -106,21 +131,29 @@ async function main() {
     setProjectionMatrix(fov, aspect_ratio, near, far, gl, program);
 
     // Set light direction
-    const light_direction = new Float32Array([0, 0, 1]);
+    const light_direction = new Float32Array([0, 0, 1]); // Light direction is in the +Z axis
     setLightSource(light_direction, gl, program);
 
     // Set clear color to 80% gray
     const clear_color = new Color(0.2, 0.2, 0.2, 1.0);
 
     // Creating camera
-    const camera = new Camera(new Vec4(50, 0, -50, 1));
+    const camera = new Camera(new Vec4(0, 0, -50, 1)); // By default, the camera is at (0, 0, 0) and looking in the positive Z direction
 
     // Loading 3D object
     const model = await fl.load3DObject('objs/cube.obj', gl, program);
     let model_matrix = model.transformation_matrix;
-    GraphicsMath.translateMatrix(model_matrix, +5, 0, 0);
+    GraphicsMath.translateMatrix(model_matrix, 0, 20, 50);
 
-    renderCallBack([model], wgl_utils, gl, program, clear_color, camera);
+    camera.logCameraStats(console);
+
+    // Rendering
+    const models_to_render = [model];
+
+    const start_render = performance.now();
+
+    const render = renderCallBack.bind(null, models_to_render, wgl_utils, gl, program, clear_color, camera, start_render);
+    requestAnimationFrame(render);
 }
 
 main();

@@ -41,6 +41,18 @@ export default class GraphicsMath {
         return result;
     }
 
+    static transposeMatrix(matrix) {
+        let result = new Float32Array(16);
+
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+                result[i * 4 + j] = matrix[j * 4 + i];
+            }
+        }
+
+        return result;
+    }
+
     /**
      * Converts degrees to radians.
      *
@@ -85,29 +97,13 @@ export default class GraphicsMath {
         const A = (- far_z - near_z) / (near_z - far_z);
         const B = (2.0 * far_z * near_z) / (near_z - far_z);
 
-        return new Float32Array([
+        const proj_mat = new Float32Array([
             1.0 / (fov * aspect_ratio), 0, 0, 0,
             0, 1.0 / fov, 0, 0,
             0, 0, A, B,
             0, 0, 1.0, 0
         ]);
-    }
 
-    /**
-     * Creates a camera matrix using the UVN camera model.
-     * @param {Vec4} cam_position - The position of the camera.
-     * @param {Vec4} target_vector - The target vector the camera is looking at.
-     * @param {Vec4} up_vector - The up vector of the camera.
-     * @returns {Float32Array} The camera matrix.
-     */
-    static createCameraMatrix(cam_position, target_vector, up_vector) {
-        const right_vector = target_vector.crossProduct(up_vector).normalize();
-
-        return new Float32Array([
-            target_vector.x, target_vector.y, target_vector.z, -cam_position.x,
-            up_vector.x, up_vector.y, up_vector.z, -cam_position.y,
-            right_vector.x, right_vector.y, right_vector.z, -cam_position.z,
-            0, 0, 0, 1
-        ]);
+        return GraphicsMath.transposeMatrix(proj_mat);
     }
 }
