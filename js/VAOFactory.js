@@ -52,8 +52,12 @@ export default class VAOFactory {
      * @static
      */
     static #configureVertexAttribute(gl, program, attribute_name, attribute_config) {
+        console.log('Configuring attribute: ' + attribute_name);
+        
         // Get the attribute location
         const attrib_location = gl.getAttribLocation(program, attribute_name);
+
+        console.log('Attribute location: ' + attrib_location);
 
         // Create buffer for the attribute
         const buffer = gl.createBuffer();

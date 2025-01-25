@@ -61,6 +61,15 @@ export default class GraphicsMath {
         return rad * (180.0 / Math.PI);
     }
 
+    static translateMatrix(matrix, x, y, z) {
+        // Line 0 column 3
+        matrix[0 * 4 + 3] += x;
+        // Line 1 column 3
+        matrix[1 * 4 + 3] += y;
+        // Line 2 column 3
+        matrix[2 * 4 + 3] += z;
+    }
+
     /**
      * Creates a projection matrix based on the given field of view, aspect ratio, and near/far clipping planes.
      *

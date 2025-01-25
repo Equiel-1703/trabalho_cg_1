@@ -7,7 +7,19 @@ export default class Vec4 {
     }
 
     static createZero() {
-        return new Vec4(0, 0, 0, 0);
+        return new Vec4(0, 0, 0, 1);
+    }
+
+    static xAxis() {
+        return new Vec4(1, 0, 0, 1);
+    }
+
+    static yAxis() {
+        return new Vec4(0, 1, 0, 1);
+    }
+
+    static zAxis() {
+        return new Vec4(0, 0, 1, 1);
     }
 
     crossProduct(B) {
