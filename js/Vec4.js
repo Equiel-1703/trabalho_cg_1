@@ -1,3 +1,5 @@
+import GraphicsMath from './GraphicsMath.js';
+
 export default class Vec4 {
     constructor(x, y, z, w) {
         this.x = x;
@@ -50,13 +52,19 @@ export default class Vec4 {
         return result;
     }
 
+    /**
+     * 
+     * @param {Float32Array} matrix - 4x4 Matrix in column major order
+     * @returns 
+     */
     applyTransformationMatrix(matrix) {
+        const rm_matrix = GraphicsMath.transposeMatrix(matrix); // row major matrix
         let result = Vec4.createZero();
 
-        result.x = this.x * matrix[0] + this.y * matrix[4] + this.z * matrix[8] + this.w * matrix[12];
-        result.y = this.x * matrix[1] + this.y * matrix[5] + this.z * matrix[9] + this.w * matrix[13];
-        result.z = this.x * matrix[2] + this.y * matrix[6] + this.z * matrix[10] + this.w * matrix[14];
-        result.w = this.x * matrix[3] + this.y * matrix[7] + this.z * matrix[11] + this.w * matrix[15];
+        result.x = this.x * rm_matrix[0] + this.y * rm_matrix[4] + this.z * rm_matrix[8] + this.w * rm_matrix[12];
+        result.y = this.x * rm_matrix[1] + this.y * rm_matrix[5] + this.z * rm_matrix[9] + this.w * rm_matrix[13];
+        result.z = this.x * rm_matrix[2] + this.y * rm_matrix[6] + this.z * rm_matrix[10] + this.w * rm_matrix[14];
+        result.w = this.x * rm_matrix[3] + this.y * rm_matrix[7] + this.z * rm_matrix[11] + this.w * rm_matrix[15];
 
         return result;
     }

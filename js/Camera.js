@@ -1,3 +1,4 @@
+import GraphicsMath from './GraphicsMath.js';
 import Vec4 from './Vec4.js';
 
 /**
@@ -88,7 +89,7 @@ export default class Camera {
             0, 0, 0, 1
         ];
 
-        return camera_matrix;
+        return GraphicsMath.transposeMatrix(camera_matrix);
     }
 
     logCameraStats(log) {

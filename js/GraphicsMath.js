@@ -92,7 +92,7 @@ export default class GraphicsMath {
      * @returns {Float32Array} A 4x4 projection matrix.
      */
     static createProjectionMatrix(fov_angle, aspect_ratio, near_z, far_z) {
-        const fov = Math.tan(this.degToRad(fov_angle) / 2.0);
+        const fov = Math.tan(this.degToRad(fov_angle / 2.0));
 
         const A = (- far_z - near_z) / (near_z - far_z);
         const B = (2.0 * far_z * near_z) / (near_z - far_z);

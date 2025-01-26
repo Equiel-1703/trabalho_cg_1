@@ -29,7 +29,12 @@ function setLightSource(light_direction, gl, program) {
     gl.uniform3fv(light_uniform, light_direction);
 }
 
-function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, camera, start) {
+let fps_limiter = 0;
+function setFPSLimiter(fps_limit) {
+    fps_limiter = 1000 / fps_limit;
+}
+
+function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
     // Reading inputs from user in HTML
     const cam_x = parseFloat(document.getElementById('cam_x').value);
     const cam_y = parseFloat(document.getElementById('cam_y').value);
@@ -39,7 +44,7 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
     camera.logCameraStats(console);
 
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
-    const camera_matrix = GraphicsMath.transposeMatrix(camera.getCameraMatrix());
+    const camera_matrix = camera.getCameraMatrix();
     const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
     gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
     
@@ -49,7 +54,7 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
         const model = models_to_render[m];
 
         const objects = model.getRenderableObjects(); // Get renderable objects from model
-        const transformation_matrix = GraphicsMath.transposeMatrix(model.transformation_matrix); // Get transformation matrix from model
+        const transformation_matrix = model.getTransformationMatrix(); // Get transformation matrix from model
         
         // Set transformation matrix (since it's the same for all objects, we can set it here)
         const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
@@ -69,14 +74,14 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
     let end = performance.now();
     const elapsed = end - start;
     
-    const diff = 16.667 - elapsed; // 60 FPS
+    const diff = fps_limiter - elapsed;
     
     // Update FPS counter in HTML
     document.getElementById('fps_counter').innerText = `FPS: ${Math.round(1000 / (elapsed + diff))}`;
 
     let start_2 = performance.now();
     
-    const callback = renderCallBack.bind(null, models_to_render, wgl_utils, gl, program, clear_color, camera, start_2);
+    const callback = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_2);
 
     if (diff > 0) {
         setTimeout(() => {
@@ -87,6 +92,9 @@ function renderCallBack(models_to_render, wgl_utils, gl, program, clear_color, c
     }
         
 }
+
+const FPS = 60;
+let models_to_render = [];
 
 async function main() {
     const log = initializeLog();
@@ -128,7 +136,7 @@ async function main() {
     log.success_log('main> Program created.');
 
     // Creating perspective matrix
-    const fov = 90;
+    const fov = 60;
     const aspect_ratio = canvas.width / canvas.height;
     const near = 0.1;
     const far = 1000;
@@ -138,23 +146,26 @@ async function main() {
     const light_direction = new Float32Array([0, 0, 1]); // Light direction is in the +Z axis
     setLightSource(light_direction, gl, program);
 
-    // Set clear color to 80% gray
-    const clear_color = new Color(0.2, 0.2, 0.2, 1.0);
+    // Set clear color to 60% gray
+    const clear_color = new Color(0.4, 0.4, 0.4, 1.0);
 
     // Creating camera
-    const camera = new Camera(new Vec4(0, 0, 0, 1)); // By default, the camera is at (0, 0, 0) and looking in the positive Z direction
+    const camera = new Camera(new Vec4(0, 0, 0, 1)); // By default, the camera is looking in the positive Z direction
 
     // Loading 3D object
-    const model = await fl.load3DObject('objs/cube.obj', gl, program);
-    let model_matrix = model.transformation_matrix;
-    GraphicsMath.translateMatrix(model_matrix, 0, 20, 50);
+    const cube_model = await fl.load3DObject('objs/cube.obj', gl, program);
+    // Translating the cube
+    GraphicsMath.translateMatrix(cube_model.getTransformationMatrix(), 0, 20, 50);
 
-    // Rendering
-    const models_to_render = [model];
+    // ------------- Rendering setup -------------
+    setFPSLimiter(FPS); // Limiting to 60 FPS
+    gl.enable(gl.DEPTH_TEST); // Enable depth test
 
-    const start_render = performance.now();
+    models_to_render = [cube_model]; // Models to render
 
-    const render = renderCallBack.bind(null, models_to_render, wgl_utils, gl, program, clear_color, camera, start_render);
+    const start_render_time = performance.now();
+
+    const render = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_render_time);
     requestAnimationFrame(render);
 }
 

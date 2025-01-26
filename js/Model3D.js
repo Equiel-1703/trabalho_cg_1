@@ -10,13 +10,15 @@ import GraphicsMath from './GraphicsMath.js';
  * @class
  * 
  * @property {Object3D[]} objects - The objects that make up the model.
- * @property {Float32Array} transformation_matrix - The transformation matrix of the model
+ * 
+ * @method getTransformationMatrix - Get the transformation matrix of the model.    
  */
 export default class Model3D {
+    #transformation_matrix = GraphicsMath.createIdentityMatrix();
+
     constructor(parsed_obj_data, gl, program) {
         // The objects that make up the model
         this.objects = [];
-        this.transformation_matrix = GraphicsMath.createIdentityMatrix();
 
         this.#createObjects(parsed_obj_data, gl, program);
     }
@@ -51,6 +53,10 @@ export default class Model3D {
             const obj = new Object3D(data, gl, program);
             this.objects.push(obj);
         }
+    }
+
+    getTransformationMatrix() {
+        return GraphicsMath.transposeMatrix(this.#transformation_matrix);
     }
 
     getRenderableObjects() {
