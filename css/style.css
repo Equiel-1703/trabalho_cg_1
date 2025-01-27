@@ -53,7 +53,7 @@ h1 {
 
 h2 {
     font-family: 'Times New Roman', Times, serif;
-    font-weight: 200;
+    font-weight: 600;
     letter-spacing: 0.25rem;
 
     margin-top: 1rem;
@@ -75,6 +75,8 @@ main {
 }
 
 #app_container {
+    user-select: none;
+
     margin: 0;
     margin-bottom: 1.5rem;
 
@@ -164,8 +166,6 @@ main {
     font-weight: 700;
     text-wrap: nowrap;
 
-    user-select: none;
-
     margin: 0;
 }
 
@@ -205,6 +205,10 @@ main {
 
     background-image: var(--thumbstick-btn-bg);
     border-radius: 50%;
+}
+
+.thumb_btn_transition {
+    transition: transform 1s;
 }
 
 .thumb_bottom {
