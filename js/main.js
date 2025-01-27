@@ -34,13 +34,16 @@ function setFPSLimiter(fps_limit) {
     fps_limiter = 1000 / fps_limit;
 }
 
-function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
-    // Reading inputs from user in HTML
-    const cam_x = parseFloat(document.getElementById('cam_x').value);
-    const cam_y = parseFloat(document.getElementById('cam_y').value);
-    const cam_z = parseFloat(document.getElementById('cam_z').value);
+let camera_position = { x: 0, y: 0, z: 0};
+let camera_rotation = { x: 0, y: 0, z: 0};
 
-    camera.location = new Vec4(cam_x, cam_y, cam_z, 1);
+function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
+    if (thumbsticks_active) {
+        camera_position.x += thumbsticks_values.camera_position.x;
+        camera_position.z += (- thumbsticks_values.camera_position.y);
+    }
+
+    camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
     camera.logCameraStats(console);
 
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
@@ -93,47 +96,65 @@ function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
 
 }
 
+let thumbsticks_values = { camera_rotation: { x: 0, y: 0 }, camera_position: { x: 0, y: 0 } };
+let thumbsticks_active = false;
 function initializeThumbsticks(log) {
-    const thumb_cam_rot = document.getElementById('thumbstick_camera_rotation');
+    const thumb_cam_rot = document.getElementById('thumb_btn_rotation');
+    const thumb_cam_pos = document.getElementById('thumb_btn_position');
+    
+    const thumbs_btns = [thumb_cam_rot, thumb_cam_pos];
 
     let moving = false;
+    let mouse_target = null;
     let starting_pos = { x: 0, y: 0 };
     let starting_transform = { x: 0, y: 0 };
-    const transform_limit = 35;
     
-    const thumb_btn = thumb_cam_rot.getElementsByClassName('thumb_btn')[0];
+    const transform_limit = 35;
+    const thumb_btn_transition = 'thumb_btn_transition';
 
     // Helper functions
     const set_thumb_translation = (x, y) => {
-        thumb_btn.style.transform = `translate(${x}px, ${y}px)`;
+        mouse_target.style.transform = `translate(${x}px, ${y}px)`;
     };
     const get_thumb_translation = () => {
-        if (thumb_btn.style.transform.length > 0) {
-            let transform_content = thumb_btn.style.transform.split('(')[1].split(')')[0].split(',');
+        if (mouse_target.style.transform.length > 0) {
+            let transform_content = mouse_target.style.transform.split('(')[1].split(')')[0].split(',');
             return { x: parseFloat(transform_content[0]), y: parseFloat(transform_content[1]) };
         } else {
             return { x: 0, y: 0 };
         }
     };
 
-    thumb_btn.addEventListener('mousedown', (e) => {
+    // Events functions
+    const evnt_mousedown = (e) => {
+        mouse_target = e.target;
+        
+        // Reset thumbsticks values
+        thumbsticks_values.camera_rotation = { x: 0, y: 0 };
+        thumbsticks_values.camera_position = { x: 0, y: 0 };
+        
+        mouse_target.classList.remove(thumb_btn_transition);        
+        
         starting_pos = { x: e.x, y: e.y };
         starting_transform = get_thumb_translation();
-
+        
+        log.log(`Mouse target: ${mouse_target.id}`);
         log.log(`Starting transform: ${starting_transform.x}, ${starting_transform.y}`);
         log.log(`Starting position: ${starting_pos.x}, ${starting_pos.y}`);
         
         moving = true;
-    });
+        thumbsticks_active = true;
+    };
 
-    document.addEventListener('mouseup', () => {
-        if (moving) {
-
-        }
+    const evnt_mouseup = () => {
         moving = false;
-    });
+        thumbsticks_active = false;
 
-    document.addEventListener('mousemove', (e) => {
+        mouse_target.classList.add(thumb_btn_transition);
+        set_thumb_translation(0, 0);
+    };
+
+    const evnt_mousemove = (e) => {
         if (moving) {
             const diff_x = e.x - starting_pos.x;
             const diff_y = e.y - starting_pos.y;
@@ -150,12 +171,24 @@ function initializeThumbsticks(log) {
             }
 
             set_thumb_translation(new_transform_x, new_transform_y);
-
+            
+            if (mouse_target === thumb_cam_rot) {
+                thumbsticks_values.camera_rotation = { x: new_transform_x / transform_limit, y: new_transform_y / transform_limit };
+            } else {
+                thumbsticks_values.camera_position = { x: new_transform_x / transform_limit, y: new_transform_y / transform_limit };
+            }
         } else {
             return;
         }
+    };
+
+    // Adding events
+    thumbs_btns.forEach((btn) => {
+        btn.addEventListener('mousedown', evnt_mousedown);
     });
 
+    document.addEventListener('mouseup', evnt_mouseup);
+    document.addEventListener('mousemove', evnt_mousemove);
 }
 
 const FPS = 60;
@@ -165,8 +198,6 @@ async function main() {
     const log = initializeLog();
 
     initializeThumbsticks(log);
-
-    return;
 
     // Initializing FileLoader and WebGLUtils
     const fl = new FileLoader(log);
