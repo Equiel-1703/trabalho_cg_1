@@ -88,8 +88,8 @@ main {
 
     background-color: rgb(20, 20, 20);
 
-    font-family: "Poiret One", serif;
-    font-weight: 400;
+    font-family: "Source Code Pro", serif;
+    font-weight: 300;
     font-style: normal;
     font-size: 1rem;
 }
@@ -106,6 +106,131 @@ main {
     height: auto;
 
     padding: 1rem;
+}
+
+/* CAMERA THUMBSTICKS */
+#camera_controls {
+    position: relative;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: auto;
+
+    margin: 0;
+    padding: 0;
+}
+
+#controls_bg {
+    position: absolute;
+
+    width: 100%;
+    height: 100%;
+
+    background-image: url('../imgs/plastic_tex_filtered.jpg');
+    background-size: cover;
+}
+
+:root {
+    --thumb-base-size: 7rem;
+    --thumb-btn-size: 5rem;
+    --thumbstick-btn-bg: radial-gradient(circle, rgb(69, 69, 69), rgb(46, 46, 46));
+    --thumbstick-base-bg: radial-gradient(circle, rgb(69, 69, 69), rgba(0, 0, 0, 1));
+}
+
+.thumbstick_container {
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: auto;
+
+    filter: blur(0.3px);
+
+    padding: 0.5rem;
+
+    gap: 1rem;
+}
+
+.thumbstick_container > p {
+    color: #f4f4f4;
+    font-weight: 700;
+    text-wrap: nowrap;
+
+    user-select: none;
+
+    margin: 0;
+}
+
+.thumbstick {
+    position: relative;
+
+    display: inline-block;
+
+    width: var(--thumb-base-size);
+    height: var(--thumb-base-size);
+}
+
+.thumb_btn_container {
+    margin: 0;
+
+    position: absolute;
+
+    width: var(--thumb-btn-size);
+    height: var(--thumb-btn-size);
+
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    z-index: 1;
+
+    display: inline-block;
+}
+
+.thumb_btn {
+    margin: 0;
+
+    position: static;
+
+    width: 100%;
+    height: 100%;
+
+    background-image: var(--thumbstick-btn-bg);
+    border-radius: 50%;
+}
+
+.thumb_bottom {
+    margin: 0;
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    z-index: 0;
+
+    background-image: var(--thumbstick-base-bg);
+    border-radius: 50%;
+
+    display: inline-block;
+}
+
+label {
+    display: flex;
+
+    flex-direction: row;
+    gap: 0.5rem;
 }
 
 #fps_counter {

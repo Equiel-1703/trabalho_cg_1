@@ -21,11 +21,25 @@
     <main>
         <div id="app_container">
             <div id="right_menu" class="menu">
-                <div id="camera_sliders">
-                    <p>Camera</p>
-                    <input type="range" min="-100" max="100" class="slider" id="cam_x" />
-                    <input type="range" min="-100" max="100" class="slider" id="cam_y" />
-                    <input type="range" min="-100" max="100" class="slider" id="cam_z" />
+
+                <div id="camera_controls">
+                    <div id="controls_bg"></div>
+
+                    <div class="thumbstick_container" id="thumbstick_camera_rotation">
+                        <p>CAMERA ROTATION</p>
+                        <div class="thumbstick">
+                            <span class="thumb_btn_container"><div class="thumb_btn"></div></span>
+                            <span class="thumb_bottom"></span>
+                        </div>
+                    </div>
+                    <div class="thumbstick_container" id="thumbstick_camera_position">
+                        <p>CAMERA POSITION</p>
+                        <div class="thumbstick">
+                            <span class="thumb_btn_container"><div class="thumb_btn"></div></span>
+                            <span class="thumb_bottom"></span>
+                        </div>
+                    </div>
+                
                 </div>
             </div>
             <canvas height="450px" width="800px" id="glcanvas">
