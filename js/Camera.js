@@ -47,12 +47,12 @@ export default class Camera {
     #up_direction = Vec4.createZero();
     #right_direction = Vec4.createZero();
 
-    constructor(location, target = Vec4.zAxis(), up = Vec4.yAxis()) {
+    constructor(location) {
         this.#location = location;
-        this.#target_direction = target;
-        this.#up_direction = up;
-
-        this.#right_direction = this.#target_direction.crossProduct(this.#up_direction).normalize();
+        
+        this.#target_direction = Vec4.zAxis();
+        this.#up_direction = Vec4.yAxis();
+        this.#right_direction = Vec4.xAxis();
     }
 
     get location() {
@@ -75,17 +75,19 @@ export default class Camera {
         this.#location = value;
     }
 
-    lookAt(target_point) {
-        this.#target_direction = target_point.normalize();
-        this.#up_direction = new Vec4(this.#target_direction.y, -this.#target_direction.x, this.#target_direction.z, 1);
-        this.#right_direction = this.#target_direction.crossProduct(this.#up_direction).normalize();
+    rotate(angle, axis) {
+        const rotation_matrix = GraphicsMath.createRotationMatrix(angle, axis);
+
+        this.#target_direction = this.#target_direction.applyTransformationMatrix(rotation_matrix);
+        this.#up_direction = this.#up_direction.applyTransformationMatrix(rotation_matrix);
+        this.#right_direction = this.#right_direction.applyTransformationMatrix(rotation_matrix);
     }
 
     getCameraMatrix() {
         const camera_matrix = [
-            this.#target_direction.x, this.#target_direction.y, this.#target_direction.z, -this.#location.x,
+            this.#right_direction.x, this.#right_direction.y, this.#right_direction.z, -this.#location.x,
             this.#up_direction.x, this.#up_direction.y, this.#up_direction.z, -this.#location.y,
-            this.#right_direction.x, this.#right_direction.y, this.#right_direction.z, -this.#location.z,
+            this.#target_direction.x, this.#target_direction.y, this.#target_direction.z, -this.#location.z,
             0, 0, 0, 1
         ];
 
