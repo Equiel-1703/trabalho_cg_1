@@ -1,5 +1,4 @@
 // This helper class only deals with 4x4 matrices and useful math functions for graphics
-
 export default class GraphicsMath {
     /**
      * Creates and returns a 4x4 identity matrix.
@@ -77,19 +76,19 @@ export default class GraphicsMath {
     /**
      * Multiplies two 4x4 matrices.
      *
-     * @param {Float32Array} A - The first 4x4 matrix.
-     * @param {Float32Array} B - The second 4x4 matrix.
-     * @returns {Float32Array} The resulting 4x4 matrix after multiplication.
+     * @param {Float32Array} A - The first 4x4 matrix in column major order.
+     * @param {Float32Array} B - The second 4x4 matrix in column major order.
+     * @returns {Float32Array} The resulting 4x4 matrix after multiplying A x B. The result is in column major order as well.
      */
     static multiplyMatrices(A, B) {
         let result = new Float32Array(16);
 
         for (let i = 0; i < 4; i++) {
             for (let j = 0; j < 4; j++) {
-                result[i * 4 + j] = 0;
+                result[j * 4 + i] = 0;
 
                 for (let k = 0; k < 4; k++) {
-                    result[i * 4 + j] += A[i * 4 + k] * B[k * 4 + j];
+                    result[j * 4 + i] += A[k * 4 + i] * B[j * 4 + k];
                 }
             }
         }
@@ -97,6 +96,12 @@ export default class GraphicsMath {
         return result;
     }
 
+    /**
+     * Transposes a 4x4 matrix.
+     *
+     * @param {Float32Array} matrix - The 4x4 matrix to transpose.
+     * @returns {Float32Array} The transposed 4x4 matrix.
+     */
     static transposeMatrix(matrix) {
         let result = new Float32Array(16);
 

@@ -34,26 +34,25 @@ function setFPSLimiter(fps_limit) {
     fps_limiter = 1000 / fps_limit;
 }
 
-let camera_position = { x: 0, y: 0, z: 0 };
-let camera_target = { x: 0, y: 0, z: 1 };
-
 function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
     const cube_x = parseFloat(document.getElementById('cube_x').value);
     const cube_y = parseFloat(document.getElementById('cube_y').value);
     const cube_z = parseFloat(document.getElementById('cube_z').value);
 
     if (thumbsticks_active) {
+        let camera_position = camera.location;
+
         camera_position.x += thumbsticks_values.camera_position.x;
         camera_position.z += (- thumbsticks_values.camera_position.y);
+
+        camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
 
         let rotation_x = thumbsticks_values.camera_rotation.x;
         let rotation_y = thumbsticks_values.camera_rotation.y;
 
-        camera.rotate(rotation_x, 'x');
-        // camera.rotate(rotation_y, 'z');
+        camera.rotate(-rotation_x, 'y');
+        camera.rotate(-rotation_y, 'x');
     }
-
-    camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
 
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
     const camera_matrix = camera.getCameraMatrix();
@@ -165,8 +164,10 @@ function initializeThumbsticks(log) {
         moving = false;
         thumbsticks_active = false;
 
-        mouse_target.classList.add(thumb_btn_transition);
-        set_thumb_translation(0, 0);
+        if (mouse_target) {
+            mouse_target.classList.add(thumb_btn_transition);
+            set_thumb_translation(0, 0);
+        }
     };
 
     const evnt_mousemove = (e) => {
@@ -187,11 +188,16 @@ function initializeThumbsticks(log) {
 
             set_thumb_translation(new_transform_x, new_transform_y);
 
-            // Here we will pass the values to the camera in [-1, 1] range
+            // Here we will convert the thumbstick values to a normalized range from -1 to 1
+            const x_normalized = new_transform_x / transform_limit;
+            const y_normalized = new_transform_y / transform_limit;
+
             if (mouse_target === thumb_cam_rot) {
-                thumbsticks_values.camera_rotation = { x: new_transform_x / transform_limit, y: new_transform_y / transform_limit };
+                // If we are rotating the camera, the range will be in radians: (-PI/180, PI/180)
+                thumbsticks_values.camera_rotation = { x: x_normalized * Math.PI / 180, y: y_normalized * Math.PI / 180 };
             } else {
-                thumbsticks_values.camera_position = { x: new_transform_x / transform_limit, y: new_transform_y / transform_limit };
+                // If we are moving the camera, the range will be in the normalized range (-1, 1)
+                thumbsticks_values.camera_position = { x: x_normalized, y: y_normalized };
             }
         } else {
             return;
@@ -266,7 +272,7 @@ async function main() {
     const clear_color = new Color(0.4, 0.4, 0.4, 1.0);
 
     // Creating camera
-    const camera = new Camera(new Vec4(0, 0, 0, 1)); // By default, the camera is looking in the positive Z direction
+    const camera = new Camera(Vec4.createZeroPoint()); // By default, the camera is looking in the positive Z direction
     document.addEventListener('keydown', (e) => {
         if (e.key === ' ') {
             camera.logCameraStats(log);

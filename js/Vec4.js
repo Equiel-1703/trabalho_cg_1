@@ -8,7 +8,7 @@ export default class Vec4 {
         this.w = w;
     }
 
-    static createZero() {
+    static createZeroPoint() {
         return new Vec4(0, 0, 0, 1);
     }
 
@@ -24,46 +24,71 @@ export default class Vec4 {
         return new Vec4(0, 0, 1, 1);
     }
 
+    /**
+     * Computes the cross product of this vector and another vector B.
+     * The cross product is a vector that is perpendicular to both input vectors.
+     * 
+     * @param {Vec4} B - The vector to compute the cross product with.
+     * @returns {Vec4} - The resulting vector from the cross product.
+     */
     crossProduct(B) {
-        let result = Vec4.createZero();
+        let result = Vec4.createZeroPoint();
 
         result.x = this.y * B.z - this.z * B.y;
         result.y = this.z * B.x - this.x * B.z;
         result.z = this.x * B.y - this.y * B.x;
-        result.w = this.w;
+        result.w = 0; // Cross product is a vector, so w is 0
 
         return result;
     }
 
+    /**
+     * Computes the dot product of this vector and another vector B.
+     * The dot product is a scalar value that is the result of multiplying the corresponding components of the two vectors and summing the results.
+     * 
+     * @param {Vec4} B - The vector to compute the dot product with.
+     * @returns {number} - The resulting scalar value from the dot product.
+     */
     dotProduct(B) {
         return this.x * B.x + this.y * B.y + this.z * B.z;
     }
 
+    /**
+     * Computes the length of the vector.
+     * 
+     * @returns {number} - The length of the vector.
+     */
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
+    /**
+     * Normalizes the vector.
+     * 
+     * @returns {Vec4} - The normalized vector.
+     */
     normalize() {
-        let result = Vec4.createZero();
+        let result = Vec4.createZeroPoint();
 
         const length = this.length();
 
         result.x = this.x / length;
         result.y = this.y / length;
         result.z = this.z / length;
-        result.w = this.w;
+        result.w = 0; // Normalized vector is a vector, so w is 0
 
         return result;
     }
 
     /**
+     * Applies a transformation matrix to the vector.
      * 
      * @param {Float32Array} matrix - 4x4 Matrix in column major order
-     * @returns 
+     * @returns {Vec4} - Transformed vector
      */
     applyTransformationMatrix(matrix) {
-        const rm_matrix = GraphicsMath.transposeMatrix(matrix); // row major matrix
-        let result = Vec4.createZero();
+        const rm_matrix = GraphicsMath.transposeMatrix(matrix); // Convert to row major order
+        let result = Vec4.createZeroPoint();
 
         let row = 0;
         result.x = this.x * rm_matrix[row] + this.y * rm_matrix[row + 1] + this.z * rm_matrix[row + 2] + this.w * rm_matrix[row + 3];
@@ -74,7 +99,7 @@ export default class Vec4 {
         row = 8;
         result.z = this.x * rm_matrix[row] + this.y * rm_matrix[row + 1] + this.z * rm_matrix[row + 2] + this.w * rm_matrix[row + 3];
 
-        result.w = 1;
+        result.w = this.w; // We can apply the transformation matrix to a point, so w remains the same
 
         return result;
     }
