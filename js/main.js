@@ -34,17 +34,26 @@ function setFPSLimiter(fps_limit) {
     fps_limiter = 1000 / fps_limit;
 }
 
-let camera_position = { x: 0, y: 0, z: 0};
-let camera_rotation = { x: 0, y: 0, z: 0};
+let camera_position = { x: 0, y: 0, z: 0 };
+let camera_target = { x: 0, y: 0, z: 1 };
 
 function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
+    const cube_x = parseFloat(document.getElementById('cube_x').value);
+    const cube_y = parseFloat(document.getElementById('cube_y').value);
+    const cube_z = parseFloat(document.getElementById('cube_z').value);
+
     if (thumbsticks_active) {
         camera_position.x += thumbsticks_values.camera_position.x;
         camera_position.z += (- thumbsticks_values.camera_position.y);
+
+        let rotation_x = thumbsticks_values.camera_rotation.x;
+        let rotation_y = thumbsticks_values.camera_rotation.y;
+
+        camera.rotate(rotation_x, 'x');
+        // camera.rotate(rotation_y, 'z');
     }
 
     camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
-    camera.logCameraStats(console);
 
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
     const camera_matrix = camera.getCameraMatrix();
@@ -57,7 +66,13 @@ function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
         const model = models_to_render[m];
 
         const objects = model.getRenderableObjects(); // Get renderable objects from model
+
+        // Translate cube
+        const cube_transformation_matrix = GraphicsMath.createTranslationMatrix(cube_x, cube_y, cube_z);
+        model.setTransformationMatrix(cube_transformation_matrix);
+
         const transformation_matrix = model.getTransformationMatrix(); // Get transformation matrix from model
+
 
         // Set transformation matrix (since it's the same for all objects, we can set it here)
         const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
@@ -101,14 +116,14 @@ let thumbsticks_active = false;
 function initializeThumbsticks(log) {
     const thumb_cam_rot = document.getElementById('thumb_btn_rotation');
     const thumb_cam_pos = document.getElementById('thumb_btn_position');
-    
+
     const thumbs_btns = [thumb_cam_rot, thumb_cam_pos];
 
     let moving = false;
     let mouse_target = null;
     let starting_pos = { x: 0, y: 0 };
     let starting_transform = { x: 0, y: 0 };
-    
+
     const transform_limit = 35;
     const thumb_btn_transition = 'thumb_btn_transition';
 
@@ -128,20 +143,20 @@ function initializeThumbsticks(log) {
     // Events functions
     const evnt_mousedown = (e) => {
         mouse_target = e.target;
-        
+
         // Reset thumbsticks values
         thumbsticks_values.camera_rotation = { x: 0, y: 0 };
         thumbsticks_values.camera_position = { x: 0, y: 0 };
-        
-        mouse_target.classList.remove(thumb_btn_transition);        
-        
+
+        mouse_target.classList.remove(thumb_btn_transition);
+
         starting_pos = { x: e.x, y: e.y };
         starting_transform = get_thumb_translation();
-        
+
         log.log(`Mouse target: ${mouse_target.id}`);
         log.log(`Starting transform: ${starting_transform.x}, ${starting_transform.y}`);
         log.log(`Starting position: ${starting_pos.x}, ${starting_pos.y}`);
-        
+
         moving = true;
         thumbsticks_active = true;
     };
@@ -171,7 +186,8 @@ function initializeThumbsticks(log) {
             }
 
             set_thumb_translation(new_transform_x, new_transform_y);
-            
+
+            // Here we will pass the values to the camera in [-1, 1] range
             if (mouse_target === thumb_cam_rot) {
                 thumbsticks_values.camera_rotation = { x: new_transform_x / transform_limit, y: new_transform_y / transform_limit };
             } else {
@@ -251,11 +267,17 @@ async function main() {
 
     // Creating camera
     const camera = new Camera(new Vec4(0, 0, 0, 1)); // By default, the camera is looking in the positive Z direction
+    document.addEventListener('keydown', (e) => {
+        if (e.key === ' ') {
+            camera.logCameraStats(log);
+        }
+    });
 
     // Loading 3D object
     const cube_model = await fl.load3DObject('objs/cube.obj', gl, program);
     // Translating the cube
-    GraphicsMath.translateMatrix(cube_model.getTransformationMatrix(), 0, 20, 50);
+    let t_mat = GraphicsMath.translateMatrix(cube_model.getTransformationMatrix(), 0, 0, 0);
+    cube_model.setTransformationMatrix(t_mat);
 
     // ------------- Rendering setup -------------
     setFPSLimiter(FPS); // Limiting to 60 FPS
