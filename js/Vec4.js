@@ -35,6 +35,10 @@ export default class Vec4 {
         return result;
     }
 
+    dotProduct(B) {
+        return this.x * B.x + this.y * B.y + this.z * B.z;
+    }
+
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
@@ -61,10 +65,16 @@ export default class Vec4 {
         const rm_matrix = GraphicsMath.transposeMatrix(matrix); // row major matrix
         let result = Vec4.createZero();
 
-        result.x = this.x * rm_matrix[0] + this.y * rm_matrix[4] + this.z * rm_matrix[8] + this.w * rm_matrix[12];
-        result.y = this.x * rm_matrix[1] + this.y * rm_matrix[5] + this.z * rm_matrix[9] + this.w * rm_matrix[13];
-        result.z = this.x * rm_matrix[2] + this.y * rm_matrix[6] + this.z * rm_matrix[10] + this.w * rm_matrix[14];
-        result.w = this.x * rm_matrix[3] + this.y * rm_matrix[7] + this.z * rm_matrix[11] + this.w * rm_matrix[15];
+        let row = 0;
+        result.x = this.x * rm_matrix[row] + this.y * rm_matrix[row + 1] + this.z * rm_matrix[row + 2] + this.w * rm_matrix[row + 3];
+
+        row = 4;
+        result.y = this.x * rm_matrix[row] + this.y * rm_matrix[row + 1] + this.z * rm_matrix[row + 2] + this.w * rm_matrix[row + 3];
+
+        row = 8;
+        result.z = this.x * rm_matrix[row] + this.y * rm_matrix[row + 1] + this.z * rm_matrix[row + 2] + this.w * rm_matrix[row + 3];
+
+        result.w = 1;
 
         return result;
     }
