@@ -1,0 +1,34 @@
+# Triangular pyramid OBJ file with triangles in counterclockwise order
+
+# Vertices
+v  0.0  0.5  0.0   # Top vertex
+v -0.5 -0.5 -0.5   # Base vertex 1
+v  0.5 -0.5 -0.5   # Base vertex 2
+v  0.0 -0.5  0.5   # Base vertex 3
+
+# Texture coordinates (optional)
+vt 0.5 1.0
+vt 0.0 0.0
+vt 1.0 0.0
+vt 0.5 0.5
+
+# Normals (optional)
+vn  0.0  1.0  0.0  # Upwards normal (top)
+vn -0.577 -0.577 0.577  # Normal for face 1
+vn  0.577 -0.577 0.577  # Normal for face 2
+vn  0.0   -0.577  -0.577  # Normal for face 3
+vn  0.0  -1.0  0.0  # Downwards normal (base)
+
+# Faces (triangles in counterclockwise order)
+
+# Base face (bottom, counterclockwise when viewed from above)
+f 2/2/5 4/4/5 3/3/5
+
+# Side face 1 (Top -> Base vertex 1 -> Base vertex 3)
+f 1/1/2 2/2/2 4/4/2
+
+# Side face 2 (Top -> Base vertex 3 -> Base vertex 2)
+f 1/1/3 4/4/3 3/3/3
+
+# Side face 3 (Top -> Base vertex 2 -> Base vertex 1)
+f 1/1/4 3/3/4 2/2/4

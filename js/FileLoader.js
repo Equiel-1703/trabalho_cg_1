@@ -32,6 +32,9 @@ export default class FileLoader extends DoLog {
 
         const obj_parser = new OBJParser();
         const parsed_obj_data = obj_parser.parseOBJ(text);
+        
+        console.log(parsed_obj_data);
+
         const model = new Model3D(parsed_obj_data, gl, program);
 
         return model;

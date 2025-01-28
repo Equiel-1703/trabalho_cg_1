@@ -25,89 +25,15 @@ function setProjectionMatrix(fov, aspect_ratio, near, far, gl, program) {
 }
 
 function setLightSource(light_direction, gl, program) {
+    const ld_norm = light_direction.normalize();
+
     const light_uniform = gl.getUniformLocation(program, 'u_light_direction');
-    gl.uniform3fv(light_uniform, light_direction);
+    gl.uniform3fv(light_uniform, new Float32Array([ld_norm.x, ld_norm.y, ld_norm.z]));
 }
 
 let fps_limiter = 0;
 function setFPSLimiter(fps_limit) {
     fps_limiter = 1000 / fps_limit;
-}
-
-function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
-    const cube_x = parseFloat(document.getElementById('cube_x').value);
-    const cube_y = parseFloat(document.getElementById('cube_y').value);
-    const cube_z = parseFloat(document.getElementById('cube_z').value);
-
-    if (thumbsticks_active) {
-        let camera_position = camera.location;
-
-        camera_position.x += thumbsticks_values.camera_position.x;
-        camera_position.z += (- thumbsticks_values.camera_position.y);
-
-        camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
-
-        let rotation_x = thumbsticks_values.camera_rotation.x;
-        let rotation_y = thumbsticks_values.camera_rotation.y;
-
-        camera.rotate(-rotation_x, 'y');
-        camera.rotate(-rotation_y, 'x');
-    }
-
-    // Set camera matrix (it will be the same for all objects to render, so we can set it here)
-    const camera_matrix = camera.getCameraMatrix();
-    const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
-    gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
-
-    wgl_utils.clearCanvas(clear_color, gl);
-
-    for (let m in models_to_render) {
-        const model = models_to_render[m];
-
-        const objects = model.getRenderableObjects(); // Get renderable objects from model
-
-        // Translate cube
-        const cube_transformation_matrix = GraphicsMath.createTranslationMatrix(cube_x, cube_y, cube_z);
-        model.setTransformationMatrix(cube_transformation_matrix);
-
-        const transformation_matrix = model.getTransformationMatrix(); // Get transformation matrix from model
-
-
-        // Set transformation matrix (since it's the same for all objects, we can set it here)
-        const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
-        gl.uniformMatrix4fv(transformation_uniform, false, transformation_matrix);
-
-        for (let o in objects) {
-            let obj = objects[o];
-
-            // Set object VAO
-            gl.bindVertexArray(obj.vao);
-
-            // Render
-            gl.drawArrays(gl.TRIANGLES, 0, obj.vertex_count);
-        }
-    }
-
-    let end = performance.now();
-    const elapsed = end - start;
-
-    const diff = fps_limiter - elapsed;
-
-    // Update FPS counter in HTML
-    document.getElementById('fps_counter').innerText = `FPS: ${Math.round(1000 / (elapsed + diff))}`;
-
-    let start_2 = performance.now();
-
-    const callback = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_2);
-
-    if (diff > 0) {
-        setTimeout(() => {
-            requestAnimationFrame(callback, start_2);
-        }, diff);
-    } else {
-        requestAnimationFrame(callback, start_2);
-    }
-
 }
 
 let thumbsticks_values = { camera_rotation: { x: 0, y: 0 }, camera_position: { x: 0, y: 0 } };
@@ -119,7 +45,8 @@ function initializeThumbsticks(log) {
     const thumbs_btns = [thumb_cam_rot, thumb_cam_pos];
 
     let moving = false;
-    let mouse_target = null;
+    let target_stick = null;
+
     let starting_pos = { x: 0, y: 0 };
     let starting_transform = { x: 0, y: 0 };
 
@@ -128,11 +55,11 @@ function initializeThumbsticks(log) {
 
     // Helper functions
     const set_thumb_translation = (x, y) => {
-        mouse_target.style.transform = `translate(${x}px, ${y}px)`;
+        target_stick.style.transform = `translate(${x}px, ${y}px)`;
     };
     const get_thumb_translation = () => {
-        if (mouse_target.style.transform.length > 0) {
-            let transform_content = mouse_target.style.transform.split('(')[1].split(')')[0].split(',');
+        if (target_stick.style.transform.length > 0) {
+            let transform_content = target_stick.style.transform.split('(')[1].split(')')[0].split(',');
             return { x: parseFloat(transform_content[0]), y: parseFloat(transform_content[1]) };
         } else {
             return { x: 0, y: 0 };
@@ -141,18 +68,18 @@ function initializeThumbsticks(log) {
 
     // Events functions
     const evnt_mousedown = (e) => {
-        mouse_target = e.target;
+        target_stick = e.target;
 
         // Reset thumbsticks values
         thumbsticks_values.camera_rotation = { x: 0, y: 0 };
         thumbsticks_values.camera_position = { x: 0, y: 0 };
 
-        mouse_target.classList.remove(thumb_btn_transition);
+        target_stick.classList.remove(thumb_btn_transition);
 
         starting_pos = { x: e.x, y: e.y };
         starting_transform = get_thumb_translation();
 
-        log.log(`Mouse target: ${mouse_target.id}`);
+        log.log(`Mouse target: ${target_stick.id}`);
         log.log(`Starting transform: ${starting_transform.x}, ${starting_transform.y}`);
         log.log(`Starting position: ${starting_pos.x}, ${starting_pos.y}`);
 
@@ -161,12 +88,13 @@ function initializeThumbsticks(log) {
     };
 
     const evnt_mouseup = () => {
-        moving = false;
-        thumbsticks_active = false;
-
-        if (mouse_target) {
-            mouse_target.classList.add(thumb_btn_transition);
+        if (target_stick) {
+            target_stick.classList.add(thumb_btn_transition);
             set_thumb_translation(0, 0);
+
+            moving = false;
+            thumbsticks_active = false;
+            target_stick = null;
         }
     };
 
@@ -192,15 +120,13 @@ function initializeThumbsticks(log) {
             const x_normalized = new_transform_x / transform_limit;
             const y_normalized = new_transform_y / transform_limit;
 
-            if (mouse_target === thumb_cam_rot) {
+            if (target_stick === thumb_cam_rot) {
                 // If we are rotating the camera, the range will be in radians: (-PI/180, PI/180)
                 thumbsticks_values.camera_rotation = { x: x_normalized * Math.PI / 180, y: y_normalized * Math.PI / 180 };
             } else {
                 // If we are moving the camera, the range will be in the normalized range (-1, 1)
                 thumbsticks_values.camera_position = { x: x_normalized, y: y_normalized };
             }
-        } else {
-            return;
         }
     };
 
@@ -213,13 +139,60 @@ function initializeThumbsticks(log) {
     document.addEventListener('mousemove', evnt_mousemove);
 }
 
+let dpad_active = false;
+let dpad_value = 0;
+function initializeDPads() {
+    const up_id = 'dpad_up';
+    const down_id = 'dpad_down';
+
+    const dpad_up = document.getElementById(up_id);
+    const dpad_down = document.getElementById(down_id);
+    const dpads = [dpad_up, dpad_down];
+
+    const dpad_pressed_src = './imgs/dpad_pressed.png';
+    const dpad_released_src = './imgs/dpad.png';
+
+    let target_dpad = null;
+
+    const evnt_mousedown = (e) => {
+        target_dpad = e.target;
+
+        if (target_dpad.id === up_id) {
+            dpad_value = 1;
+        } else if (target_dpad.id === down_id) {
+            dpad_value = -1;
+        }
+
+        target_dpad.attributes.src.value = dpad_pressed_src;
+        dpad_active = true;
+    }
+
+    const evnt_mouseup = () => {
+        dpad_active = false;
+
+        if (target_dpad) {
+            target_dpad.attributes.src.value = dpad_released_src;
+            target_dpad = null;
+        }
+    }
+
+    for (let d in dpads) {
+        dpads[d].addEventListener('mousedown', evnt_mousedown);
+    }
+
+    document.addEventListener('mouseup', evnt_mouseup);
+}
+
+// ----------- APP PARAMETERS --------------
 const FPS = 60;
 let models_to_render = [];
 
+// ----------- MAIN FUNCTION --------------
 async function main() {
     const log = initializeLog();
 
     initializeThumbsticks(log);
+    initializeDPads(log);
 
     // Initializing FileLoader and WebGLUtils
     const fl = new FileLoader(log);
@@ -265,7 +238,7 @@ async function main() {
     setProjectionMatrix(fov, aspect_ratio, near, far, gl, program);
 
     // Set light direction
-    const light_direction = new Float32Array([0, 0, 1]); // Light direction is in the +Z axis
+    const light_direction = new Vec4(0.5, -0.6, 1, 0); // Light direction
     setLightSource(light_direction, gl, program);
 
     // Set clear color to 60% gray
@@ -279,22 +252,116 @@ async function main() {
         }
     });
 
-    // Loading 3D object
+    // Loading 3D objects
     const cube_model = await fl.load3DObject('objs/cube.obj', gl, program);
-    // Translating the cube
-    let t_mat = GraphicsMath.translateMatrix(cube_model.getTransformationMatrix(), 0, 0, 0);
-    cube_model.setTransformationMatrix(t_mat);
+    const pyram_model = await fl.load3DObject('objs/triang_pyram.obj', gl, program);
+
+    // Creating transformation matrix
+    const scale = 10;
+    let scale_matrix = GraphicsMath.createScaleMatrix(scale, scale, scale);
+    let translation_matrix = GraphicsMath.createTranslationMatrix(-20, 0, 0);
+
+    cube_model.setTransformationMatrix(scale_matrix);
+    pyram_model.setTransformationMatrix(GraphicsMath.multiplyMatrices(translation_matrix, scale_matrix));
 
     // ------------- Rendering setup -------------
     setFPSLimiter(FPS); // Limiting to 60 FPS
     gl.enable(gl.DEPTH_TEST); // Enable depth test
 
-    models_to_render = [cube_model]; // Models to render
+    models_to_render = [cube_model, pyram_model]; // Models to render
 
     const start_render_time = performance.now();
 
     const render = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_render_time);
     requestAnimationFrame(render);
+}
+
+
+function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
+    const cube_x = parseFloat(document.getElementById('cube_x').value);
+    const cube_y = parseFloat(document.getElementById('cube_y').value);
+    const cube_z = parseFloat(document.getElementById('cube_z').value);
+
+    let camera_position = camera.location;
+    if (thumbsticks_active) {
+
+        camera_position.x += thumbsticks_values.camera_position.x;
+        camera_position.z += (- thumbsticks_values.camera_position.y);
+
+        let rotation_x = thumbsticks_values.camera_rotation.x;
+        let rotation_y = thumbsticks_values.camera_rotation.y;
+
+        camera.rotate(-rotation_x, 'y');
+        camera.rotate(-rotation_y, 'x');
+    }
+
+    if (dpad_active) {
+        camera_position.y += dpad_value;
+    }
+
+    camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
+
+    // Set camera matrix (it will be the same for all objects to render, so we can set it here)
+    const camera_matrix = camera.getCameraMatrix();
+    const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
+    gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
+
+    wgl_utils.clearCanvas(clear_color, gl);
+
+    for (let m in models_to_render) {
+        const model = models_to_render[m];
+
+        const objects = model.getRenderableObjects(); // Get renderable objects from model
+
+        // Create transformation matrix for model
+        // let object_transformation_matrix = GraphicsMath.createIdentityMatrix();
+
+        // Apply rotation to model
+        // TODO...
+        // Apply scaling to model
+        // TODO...
+        // Apply translation to model
+        // object_transformation_matrix = GraphicsMath.multiplyMatrices(GraphicsMath.createTranslationMatrix(cube_x, cube_y, cube_z), object_transformation_matrix);
+
+        // Now we will apply this transformation matrix to the initial transformation matrix of the model
+        // object_transformation_matrix = GraphicsMath.multiplyMatrices(object_transformation_matrix, model.getTransformationMatrix());
+
+        // Set transformation matrix (since it's the same for all objects, we can set it here)
+        const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
+        // gl.uniformMatrix4fv(transformation_uniform, false, object_transformation_matrix);
+        gl.uniformMatrix4fv(transformation_uniform, false, model.getTransformationMatrix());
+
+        for (let o in objects) {
+            let obj = objects[o];
+
+            // Set object VAO
+            gl.bindVertexArray(obj.vao);
+
+            // Render
+            gl.drawArrays(gl.TRIANGLES, 0, obj.vertex_count);
+        }
+    }
+
+    let end = performance.now();
+    const elapsed = end - start;
+
+    const diff = fps_limiter - elapsed;
+
+    // Update FPS counter in HTML
+    document.getElementById('fps_counter').innerText = `FPS: ${Math.round(1000 / (elapsed + diff))}`;
+
+    let start_2 = performance.now();
+
+    const callback = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_2);
+
+    if (diff > 0) {
+        setTimeout(() => {
+            requestAnimationFrame(callback, start_2);
+        }, diff);
+    } else {
+        requestAnimationFrame(callback, start_2);
+    }
+
 }
 
 main();

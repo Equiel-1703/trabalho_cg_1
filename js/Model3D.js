@@ -47,7 +47,7 @@ export default class Model3D {
             //       normal,
             //       color,
             //     },
-            // I only really care for the data portion, so the rest I'll ignore. I can change this if I need them.
+            // I only really care for the data portion, so the rest I'll ignore. I can change this later if I need them.
 
             const data = geometries[g].data;
             const obj = new Object3D(data, gl, program);

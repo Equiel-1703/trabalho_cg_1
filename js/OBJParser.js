@@ -130,10 +130,12 @@ export default class OBJParser {
         };
 
         const keywordRE = /(\w*)(?: )*(.*)/;
+        const commentRE = /#.*/;
         const lines = text.split('\n');
         for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
-            const line = lines[lineNo].trim();
-            if (line === '' || line.startsWith('#')) {
+            let line_with_comments = lines[lineNo].trim();
+            const line = line_with_comments.replace(commentRE, '').trim();
+            if (line === '') {
                 continue;
             }
             const m = keywordRE.exec(line);

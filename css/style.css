@@ -126,8 +126,16 @@ main {
     padding: 0;
 }
 
+#camera_controls > * {
+    z-index: 2;
+}
+
 #controls_bg {
     position: absolute;
+    top: 0;
+    left: 0;
+
+    z-index: 1;
 
     width: 100%;
     height: 100%;
@@ -228,6 +236,26 @@ main {
     border-radius: 50%;
 
     display: inline-block;
+}
+
+.dpads {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    user-select: none;
+
+    gap: 0.5rem;
+
+    padding: 0.5rem;
+
+    width: auto;
+    height: 100%;
+}
+
+#dpad_down {
+    transform: scale(1, -1);
 }
 
 label {

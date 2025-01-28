@@ -20,7 +20,7 @@
 
     <main>
         <div id="app_container">
-            <div id="right_menu" class="menu">
+            <div id="left_menu" class="menu">
                 <div>
                     <input type="range" name="cube_x" id="cube_x" min="-50" max="50" step="0.1" value="0" />
                     <label for="cube_x">Cube X</label>
@@ -36,23 +36,31 @@
                     <div class="thumbstick_container">
                         <p>CAMERA ROTATION</p>
                         <div class="thumbstick">
-                            <span class="thumb_btn_container"><div class="thumb_btn" id="thumb_btn_rotation"></div></span>
+                            <span class="thumb_btn_container">
+                                <div class="thumb_btn" id="thumb_btn_rotation"></div>
+                            </span>
                             <span class="thumb_bottom"></span>
                         </div>
                     </div>
                     <div class="thumbstick_container">
                         <p>CAMERA POSITION</p>
                         <div class="thumbstick">
-                            <span class="thumb_btn_container"><div class="thumb_btn" id="thumb_btn_position"></div></span>
+                            <span class="thumb_btn_container">
+                                <div class="thumb_btn" id="thumb_btn_position"></div>
+                            </span>
                             <span class="thumb_bottom"></span>
                         </div>
+                    </div>
+                    <div class="dpads">
+                        <img src="./imgs/dpad.png" alt="dpad_up" id="dpad_up" class="dpad" draggable="false" />
+                        <img src="./imgs/dpad.png" alt="dpad_down" id="dpad_down" class="dpad" draggable="false" />
                     </div>
                 </div>
             </div>
             <canvas height="450px" width="800px" id="glcanvas">
                 Seu navegador não suporta canvas.
             </canvas>
-            <div id="left_menu" class="menu">
+            <div id="right_menu" class="menu">
                 <p id="fps_counter">FPS: </p>
             </div>
 
@@ -67,7 +75,7 @@
         <p>© <span id="author">HENRIQUE GABRIEL RODRIGUES BARRAZ</span></p>
         <p>Pelotas, 2025</p>
     </footer>
-    
+
     <script type="module" src="./js/main.js"></script>
 </body>
 

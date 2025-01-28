@@ -1,6 +1,26 @@
 // This helper class only deals with 4x4 matrices and useful math functions for graphics
 export default class GraphicsMath {
     /**
+     * Converts degrees to radians.
+     *
+     * @param {number} degrees - The angle in degrees.
+     * @returns {number} The angle in radians.
+     */
+    static degToRad(degrees) {
+        return degrees * (Math.PI / 180.0);
+    }
+
+    /**
+     * Converts radians to degrees.
+     *
+     * @param {number} rad - The angle in radians.
+     * @returns {number} The angle in degrees.
+     */
+    static radToDeg(rad) {
+        return rad * (180.0 / Math.PI);
+    }
+
+    /**
      * Creates and returns a 4x4 identity matrix.
      * 
      * An identity matrix is a square matrix with ones on the main diagonal and zeros elsewhere.
@@ -74,6 +94,23 @@ export default class GraphicsMath {
     }
 
     /**
+     * Creates a scale matrix for the given x, y, and z values.
+     * 
+     * @param {number} x - The x scale value.
+     * @param {number} y - The y scale value.
+     * @param {number} z - The z scale value.
+     * @returns {Float32Array} A 4x4 scale matrix in column major order.
+     */
+    static createScaleMatrix(x, y, z) {
+        return new Float32Array([
+            x, 0, 0, 0,
+            0, y, 0, 0,
+            0, 0, z, 0,
+            0, 0, 0, 1
+        ]);
+    }
+
+    /**
      * Multiplies two 4x4 matrices.
      *
      * @param {Float32Array} A - The first 4x4 matrix in column major order.
@@ -112,26 +149,6 @@ export default class GraphicsMath {
         }
 
         return result;
-    }
-
-    /**
-     * Converts degrees to radians.
-     *
-     * @param {number} degrees - The angle in degrees.
-     * @returns {number} The angle in radians.
-     */
-    static degToRad(degrees) {
-        return degrees * (Math.PI / 180.0);
-    }
-
-    /**
-     * Converts radians to degrees.
-     *
-     * @param {number} rad - The angle in radians.
-     * @returns {number} The angle in degrees.
-     */
-    static radToDeg(rad) {
-        return rad * (180.0 / Math.PI);
     }
 
     /**

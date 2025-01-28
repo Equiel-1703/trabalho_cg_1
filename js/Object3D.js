@@ -127,7 +127,7 @@ export default class Object3D {
 
         if (!('color' in geometry_data) || geometry_data.color.length === 0) {
             // Create an array filled with random colors
-            color = new Array(color_expected_length).fill(0);
+            color = new Float32Array(color_expected_length).fill(0);
 
             for (let i = 0; i < color.length; i += 4) {
                 color[i] = Math.random();
