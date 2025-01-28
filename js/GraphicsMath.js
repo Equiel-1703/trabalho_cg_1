@@ -19,6 +19,62 @@ export default class GraphicsMath {
     }
 
     /**
+     * Creates a rotation matrix for a given angle and axis.
+     *
+     * @param {number} angle - The angle of rotation in radians.
+     * @param {string} axis - The axis of rotation ('x', 'y', or 'z').
+     * @returns {Float32Array} A 4x4 rotation matrix in column major order.
+     */
+    static createRotationMatrix(angle, axis) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+
+        let matrix = GraphicsMath.createIdentityMatrix();
+
+        if (axis === 'x') {
+            matrix = new Float32Array([
+                1, 0, 0, 0,
+                0, c, -s, 0,
+                0, s, c, 0,
+                0, 0, 0, 1
+            ]);
+        } else if (axis === 'y') {
+            matrix = new Float32Array([
+                c, 0, s, 0,
+                0, 1, 0, 0,
+                -s, 0, c, 0,
+                0, 0, 0, 1
+            ]);
+        } else if (axis === 'z') {
+            matrix = new Float32Array([
+                c, -s, 0, 0,
+                s, c, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            ]);
+        }
+
+        return GraphicsMath.transposeMatrix(matrix);
+    }
+
+    /**
+     * Creates a translation matrix for the given x, y, and z values.
+     * 
+     * @param {number} x - The x translation value.
+     * @param {number} y - The y translation value.
+     * @param {number} z - The z translation value.
+     * @returns {Float32Array} A 4x4 translation matrix in column major order.
+     */
+    static createTranslationMatrix(x, y, z) {
+        return new Float32Array([
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            x, y, z, 1
+        ]);
+    }
+
+    /**
      * Multiplies two 4x4 matrices.
      *
      * @param {Float32Array} A - The first 4x4 matrix.
@@ -73,13 +129,23 @@ export default class GraphicsMath {
         return rad * (180.0 / Math.PI);
     }
 
+    /**
+     * Translates a 4x4 matrix by the given x, y, and z values.
+     * 
+     * @param {Float32Array} matrix - The 4x4 matrix to translate in column major order.
+     * @param {number} x - The x translation value.
+     * @param {number} y - The y translation value.
+     * @param {number} z - The z translation value.
+     * @returns {Float32Array} The translated 4x4 matrix in column major order.
+     */
     static translateMatrix(matrix, x, y, z) {
-        // Line 0 column 3
-        matrix[0 * 4 + 3] += x;
-        // Line 1 column 3
-        matrix[1 * 4 + 3] += y;
-        // Line 2 column 3
-        matrix[2 * 4 + 3] += z;
+        let result = new Float32Array(matrix);
+
+        result[12] += x;
+        result[13] += y;
+        result[14] += z;
+
+        return result;
     }
 
     /**
@@ -89,7 +155,7 @@ export default class GraphicsMath {
      * @param {number} aspect_ratio - The aspect ratio of the view (width/height).
      * @param {number} near_z - The distance to the near clipping plane.
      * @param {number} far_z - The distance to the far clipping plane.
-     * @returns {Float32Array} A 4x4 projection matrix.
+     * @returns {Float32Array} A 4x4 projection matrix in column major order.
      */
     static createProjectionMatrix(fov_angle, aspect_ratio, near_z, far_z) {
         const fov = Math.tan(this.degToRad(fov_angle / 2.0));
