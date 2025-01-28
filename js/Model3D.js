@@ -55,8 +55,22 @@ export default class Model3D {
         }
     }
 
+    /**
+     * Get the transformation matrix of the model.
+     * 
+     * @returns {Float32Array} The transformation matrix in column major order.
+     */
     getTransformationMatrix() {
-        return GraphicsMath.transposeMatrix(this.#transformation_matrix);
+        return this.#transformation_matrix;
+    }
+
+    /**
+     *  Sets the transformation matrix of the model.
+     * 
+     * @param {Float32Array} matrix - The transformation matrix in column major order.
+     */
+    setTransformationMatrix(matrix) {
+        this.#transformation_matrix = matrix;
     }
 
     getRenderableObjects() {
