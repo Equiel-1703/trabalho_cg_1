@@ -20,6 +20,14 @@ export default class FileLoader extends DoLog {
         return text;
     }
 
+    /**
+     * Loads a 3D object from a .obj file.
+     * 
+     * @param {string} object_path - Path to the .obj file.
+     * @param {WebGL2RenderingContext} gl - The WebGL2RenderingContext object.
+     * @param {WebGLProgram} program - The WebGLProgram object.
+     * @returns {Model3D} - The 3D model.
+     */
     async load3DObject(object_path, gl, program) {
         const response = await fetch(object_path);
 

@@ -12,8 +12,10 @@ export class Color {
 export class WebGLUtils extends DoLog {
     #gl = null;
 
+    static #WUtilsInstance = 0;
+
     constructor(log) {
-        super(log, 'WebGLUtils> ');
+        super(log, `WebGLUtils[${WebGLUtils.#WUtilsInstance++}]> `);
     }
 
     initializeWebGLContext(canvas) {

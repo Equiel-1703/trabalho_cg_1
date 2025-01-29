@@ -59,12 +59,17 @@ export default class Object3D {
         return this.#vao;
     }
 
-    getGeometryData() {
-        return this.#geometry_data;
-    }
-
     getVertexCount() {
         return this.#vertex_count;
+    }
+
+    /**
+     * This is mostly used for debugging purposes.
+     * 
+     * @returns {Object} The geometry data containing position, texcoord, normal, and color attributes.
+     */
+    getGeometryData() {
+        return this.#geometry_data;
     }
 
     /**

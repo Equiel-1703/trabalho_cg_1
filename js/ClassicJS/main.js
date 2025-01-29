@@ -1,6 +1,8 @@
 import OutputLog from "../Logging/OutputLog.js";
 import UserInputs from "../Inputs/UserInputs.js";
 import FileLoader from "../FileProcessing/FileLoader.js";
+
+import PreviewCanvas from "../3DStuff/PreviewCanvas.js";
 import { Color, WebGLUtils } from "../3DStuff/WebGLUtils.js";
 import GraphicsMath from "../3DStuff/GraphicsMath.js";
 import Vec4 from "../3DStuff/Vec4.js";
@@ -63,6 +65,8 @@ async function getObjsList() {
 
 // ----------- APP PARAMETERS --------------
 const FPS = 60;
+const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
+
 let models_to_render = [];
 let user_inputs = null;
 
@@ -119,9 +123,6 @@ async function main() {
     const light_direction = new Vec4(0.5, -0.6, 1, 0); // Light direction
     setLightSource(light_direction, gl, program);
 
-    // Set clear color to 60% gray
-    const clear_color = new Color(0.4, 0.4, 0.4, 1.0);
-
     // Creating camera
     const camera = new Camera(Vec4.createZeroPoint()); // By default, the camera is looking in the positive Z direction
     document.addEventListener('keydown', (e) => {
@@ -132,9 +133,16 @@ async function main() {
 
 
     // Load models list
-    const objs_list = await getObjsList();
-    console.log(objs_list);
+    // const objs_list = await getObjsList();
+    // console.log(objs_list);
 
+    const obj_path = './objs/kit/ball.obj';
+    const preview_canvas_id = 'mc_1';
+
+    log.log('main> Starting object preview in mc_1');
+
+    const preview_canvas = new PreviewCanvas(preview_canvas_id, v_shader, f_shader, log);
+    preview_canvas.setModel(obj_path);
 
     // ------------- Rendering setup -------------
     setFPSLimiter(FPS); // Limiting to 60 FPS
@@ -142,7 +150,7 @@ async function main() {
 
     const start_render_time = performance.now();
 
-    const callback = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_render_time);
+    const callback = renderCallBack.bind(null, wgl_utils, gl, program, CLEAR_COLOR, camera, start_render_time);
     requestAnimationFrame(callback);
 }
 

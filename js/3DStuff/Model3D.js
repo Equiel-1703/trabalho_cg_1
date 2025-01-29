@@ -74,6 +74,11 @@ export default class Model3D {
         this.#transformation_matrix = matrix;
     }
 
+    /**
+     * Get the renderable objects of the model.
+     * 
+     * @returns {Object3D[]} The renderable objects of the model.
+     */
     getRenderableObjects() {
         return this.objects;
     }
