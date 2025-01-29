@@ -14,6 +14,11 @@ import VAOFactory from "./VAOFactory.js";
  * @property {number} vertex_count - The number of vertices in this object.
  */
 export default class Object3D {
+    #material = null;
+    #vao = null;
+    #geometry_data = null;
+    #vertex_count = 0;
+
     /**
      * Creates a new Object3D.
      * 
@@ -22,18 +27,44 @@ export default class Object3D {
      * @param {number[]} geometry_data.texcoord - The texture coordinates of the vertices.
      * @param {number[]} geometry_data.normal - The normals of the vertices.
      * @param {number[]} geometry_data.color - The colors of the vertices.
+     * @param {Object} material - The material of the object.
+     * @param {number} material.shininess - The shininess of the material.
+     * @param {number[]} material.ambient - The ambient color of the material.
+     * @param {number[]} material.diffuse - The diffuse color of the material.
+     * @param {number[]} material.specular - The specular color of the material.
+     * @param {number[]} material.emissive - The emissive color of the material.
+     * @param {number} material.opticalDensity - The optical density of the material.
+     * @param {number} material.opacity - The opacity of the material.
+     * @param {number} material.illum - The illumination model of the material.
      * @param {WebGLRenderingContext} gl - The WebGL rendering context.
      * @param {WebGLProgram} program - The WebGL program.
      * 
      * @constructor
      */
-    constructor(geometry_data, gl, program) {
-        this.geometry_data = this.#processGeometryData(geometry_data);
+    constructor(geometry_data, material, gl, program) {
+        this.#geometry_data = this.#processGeometryData(geometry_data);
+        this.#material = material;
 
-        const config = this.#createVAOConfig(this.geometry_data, gl);
+        const config = this.#createVAOConfig(this.#geometry_data, gl);
 
-        this.vao = VAOFactory.buildVAO(config, gl, program);
-        this.vertex_count = this.#getVerticesCount(geometry_data);
+        this.#vao = VAOFactory.buildVAO(config, gl, program);
+        this.#vertex_count = this.#countVertices(geometry_data);
+    }
+
+    getMaterial() {
+        return this.#material;
+    }
+
+    getVAO() {
+        return this.#vao;
+    }
+
+    getGeometryData() {
+        return this.#geometry_data;
+    }
+
+    getVertexCount() {
+        return this.#vertex_count;
     }
 
     /**
@@ -44,7 +75,7 @@ export default class Object3D {
      * 
      * @private
      */
-    #getVerticesCount(geometry_data) {
+    #countVertices(geometry_data) {
         return geometry_data.position.length / 3;
     }
 
@@ -58,7 +89,7 @@ export default class Object3D {
      * @private
      */
     #createVAOConfig(geometry_data, gl) {
-        return {
+        const config = {
             'a_position': {
                 data: geometry_data.position,
                 components_per_attr: 3,
@@ -91,7 +122,9 @@ export default class Object3D {
                 stride: 0,
                 offset: 0
             }
-        };
+        }
+
+        return config;
     }
 
     /**
@@ -126,14 +159,14 @@ export default class Object3D {
         const color_expected_length = position.length / 3 * 4; // Calculate the expected length of the color array
 
         if (!('color' in geometry_data) || geometry_data.color.length === 0) {
-            // Create an array filled with random colors
-            color = new Float32Array(color_expected_length).fill(0);
+            // If not, create an array filled with random colors
+            color = new Float32Array(color_expected_length);
 
-            for (let i = 0; i < color.length; i += 4) {
-                color[i] = Math.random();
-                color[i + 1] = Math.random();
-                color[i + 2] = Math.random();
-                color[i + 3] = 1.0;
+            for (let i = 0; i < color_expected_length / 4; i++) {
+                color[i * 4] = Math.random();
+                color[i * 4 + 1] = Math.random();
+                color[i * 4 + 2] = Math.random();
+                color[i * 4 + 3] = 1.0;
             }
         } else if (geometry_data.color.length < color_expected_length) {
             // This means that the color array is missing the alpha channel, let's add it with a value of 1.0

@@ -16,23 +16,24 @@ import GraphicsMath from './GraphicsMath.js';
 export default class Model3D {
     #transformation_matrix = GraphicsMath.createIdentityMatrix();
 
-    constructor(parsed_obj_data, gl, program) {
+    constructor(parsed_obj_data, parsed_materials, gl, program) {
         // The objects that make up the model
         this.objects = [];
 
-        this.#createObjects(parsed_obj_data, gl, program);
+        this.#createObjects(parsed_obj_data, parsed_materials, gl, program);
     }
 
     /**
      * Creates the objects that make up the model.
      * 
      * @param {Object} parsed_obj_data - The parsed object data.
+     * @param {Object} parsed_materials - The parsed materials.
      * @param {WebGL2RenderingContext} gl - The WebGL2 context.
      * @param {WebGLProgram} program - The WebGL program.
      * 
      * @private
      */
-    #createObjects(parsed_obj_data, gl, program) {
+    #createObjects(parsed_obj_data, parsed_materials, gl, program) {
         const geometries = parsed_obj_data.geometries;
 
         for (let g in geometries) {
@@ -47,10 +48,10 @@ export default class Model3D {
             //       normal,
             //       color,
             //     },
-            // I only really care for the data portion, so the rest I'll ignore. I can change this later if I need them.
 
             const data = geometries[g].data;
-            const obj = new Object3D(data, gl, program);
+            const material = parsed_materials[geometries[g].material];
+            const obj = new Object3D(data, material, gl, program);
             this.objects.push(obj);
         }
     }

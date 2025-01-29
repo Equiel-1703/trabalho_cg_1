@@ -53,6 +53,9 @@ function initializeThumbsticks(log) {
     const transform_limit = 35;
     const thumb_btn_transition = 'thumb_btn_transition';
 
+    const rotation_smoothness = 2;
+    const position_smoothness = 10;
+
     // Helper functions
     const set_thumb_translation = (x, y) => {
         target_stick.style.transform = `translate(${x}px, ${y}px)`;
@@ -123,9 +126,15 @@ function initializeThumbsticks(log) {
             if (target_stick === thumb_cam_rot) {
                 // If we are rotating the camera, the range will be in radians: (-PI/180, PI/180)
                 thumbsticks_values.camera_rotation = { x: x_normalized * Math.PI / 180, y: y_normalized * Math.PI / 180 };
+
+                thumbsticks_values.camera_rotation.x /= rotation_smoothness;
+                thumbsticks_values.camera_rotation.y /= rotation_smoothness;
             } else {
                 // If we are moving the camera, the range will be in the normalized range (-1, 1)
                 thumbsticks_values.camera_position = { x: x_normalized, y: y_normalized };
+
+                thumbsticks_values.camera_position.x /= position_smoothness;
+                thumbsticks_values.camera_position.y /= position_smoothness;
             }
         }
     };
@@ -152,6 +161,8 @@ function initializeDPads() {
     const dpad_pressed_src = './imgs/dpad_pressed.png';
     const dpad_released_src = './imgs/dpad.png';
 
+    const dpad_smoothness = 10;
+
     let target_dpad = null;
 
     const evnt_mousedown = (e) => {
@@ -162,6 +173,8 @@ function initializeDPads() {
         } else if (target_dpad.id === down_id) {
             dpad_value = -1;
         }
+
+        dpad_value /= dpad_smoothness;
 
         target_dpad.attributes.src.value = dpad_pressed_src;
         dpad_active = true;
@@ -253,22 +266,15 @@ async function main() {
     });
 
     // Loading 3D objects
-    const cube_model = await fl.load3DObject('objs/cube.obj', gl, program);
-    const pyram_model = await fl.load3DObject('objs/triang_pyram.obj', gl, program);
+    const ball_model = await fl.load3DObject('./objs/kit/ball_teamBlue.obj', gl, program);
 
-    // Creating transformation matrix
-    const scale = 10;
-    let scale_matrix = GraphicsMath.createScaleMatrix(scale, scale, scale);
-    let translation_matrix = GraphicsMath.createTranslationMatrix(-20, 0, 0);
+    models_to_render.push(ball_model);
 
-    cube_model.setTransformationMatrix(scale_matrix);
-    pyram_model.setTransformationMatrix(GraphicsMath.multiplyMatrices(translation_matrix, scale_matrix));
+    console.log(ball_model);
 
     // ------------- Rendering setup -------------
     setFPSLimiter(FPS); // Limiting to 60 FPS
     gl.enable(gl.DEPTH_TEST); // Enable depth test
-
-    models_to_render = [cube_model, pyram_model]; // Models to render
 
     const start_render_time = performance.now();
 
@@ -276,12 +282,8 @@ async function main() {
     requestAnimationFrame(render);
 }
 
-
+// ----------------- RENDER CALLBACK -----------------
 function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
-    const cube_x = parseFloat(document.getElementById('cube_x').value);
-    const cube_y = parseFloat(document.getElementById('cube_y').value);
-    const cube_z = parseFloat(document.getElementById('cube_z').value);
-
     let camera_position = camera.location;
     if (thumbsticks_active) {
 
@@ -301,9 +303,15 @@ function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
 
     camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
 
+    // Getting uniform locations
+    const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
+    const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
+    const enable_v_color_uniform = gl.getUniformLocation(program, 'u_enable_vertex_color');
+    const enable_m_color_uniform = gl.getUniformLocation(program, 'u_enable_material_color');
+    const material_color = gl.getUniformLocation(program, 'u_material_color');
+
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
     const camera_matrix = camera.getCameraMatrix();
-    const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
     gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
 
     wgl_utils.clearCanvas(clear_color, gl);
@@ -327,18 +335,36 @@ function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
         // object_transformation_matrix = GraphicsMath.multiplyMatrices(object_transformation_matrix, model.getTransformationMatrix());
 
         // Set transformation matrix (since it's the same for all objects, we can set it here)
-        const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
         // gl.uniformMatrix4fv(transformation_uniform, false, object_transformation_matrix);
         gl.uniformMatrix4fv(transformation_uniform, false, model.getTransformationMatrix());
 
         for (let o in objects) {
             let obj = objects[o];
 
+            // Set object material settings
+            const material = obj.getMaterial();
+            if (material) {
+                // Enable material color
+                gl.uniform1f(enable_m_color_uniform, 1.0);
+                // Disable vertex color
+                gl.uniform1f(enable_v_color_uniform, 0.0);
+
+                // Set material color
+                gl.uniform3fv(material_color, new Float32Array(material.diffuse));
+            } else {
+                // Disable material color
+                gl.uniform1f(enable_m_color_uniform, 0.0);
+                // Enable vertex color
+                gl.uniform1f(enable_v_color_uniform, 1.0);
+
+                gl.uniform3fv(material_color, new Float32Array([1.0, 1.0, 1.0]));
+            }
+
             // Set object VAO
-            gl.bindVertexArray(obj.vao);
+            gl.bindVertexArray(obj.getVAO());
 
             // Render
-            gl.drawArrays(gl.TRIANGLES, 0, obj.vertex_count);
+            gl.drawArrays(gl.TRIANGLES, 0, obj.getVertexCount());
         }
     }
 
