@@ -1,10 +1,10 @@
-import OutputLog from "./OutputLog.js";
-import UserInputs from "./UserInputs.js";
-import { Color, WebGLUtils } from "./WebGLUtils.js";
-import FileLoader from "./FileLoader.js";
-import GraphicsMath from "./GraphicsMath.js";
-import Vec4 from "./Vec4.js";
-import Camera from "./Camera.js";
+import OutputLog from "../Logging/OutputLog.js";
+import UserInputs from "../Inputs/UserInputs.js";
+import FileLoader from "../FileProcessing/FileLoader.js";
+import { Color, WebGLUtils } from "../3DStuff/WebGLUtils.js";
+import GraphicsMath from "../3DStuff/GraphicsMath.js";
+import Vec4 from "../3DStuff/Vec4.js";
+import Camera from "../3DStuff/Camera.js";
 
 function initializeLog() {
     // Initializing log
@@ -37,167 +37,29 @@ function setFPSLimiter(fps_limit) {
     fps_limiter = 1000 / fps_limit;
 }
 
-/*
-let thumbsticks_values = { camera_rotation: { x: 0, y: 0 }, camera_position: { x: 0, y: 0 } };
-let thumbsticks_active = false;
-function initializeThumbsticks(log) {
-    const thumb_cam_rot = document.getElementById('thumb_btn_rotation');
-    const thumb_cam_pos = document.getElementById('thumb_btn_position');
+async function getObjsList() {
+    const file_list_path = './objs/kit/objs_list.files';
+    const obj_prefix = './objs/kit/';
 
-    const thumbs_btns = [thumb_cam_rot, thumb_cam_pos];
+    const ret = await fetch(file_list_path);
 
-    let moving = false;
-    let target_stick = null;
+    if (!ret.ok) {
+        throw new Error('Failed to fetch file list.');
+    }
 
-    let starting_pos = { x: 0, y: 0 };
-    let starting_transform = { x: 0, y: 0 };
+    const text = await ret.text();
+    const obj_list = [];
 
-    const transform_limit = 35;
-    const thumb_btn_transition = 'thumb_btn_transition';
-
-    const rotation_smoothness = 2;
-    const position_smoothness = 10;
-
-    // Helper functions
-    const set_thumb_translation = (x, y) => {
-        target_stick.style.transform = `translate(${x}px, ${y}px)`;
-    };
-    const get_thumb_translation = () => {
-        if (target_stick.style.transform.length > 0) {
-            let transform_content = target_stick.style.transform.split('(')[1].split(')')[0].split(',');
-            return { x: parseFloat(transform_content[0]), y: parseFloat(transform_content[1]) };
-        } else {
-            return { x: 0, y: 0 };
+    text.split('\n').forEach((line) => {
+        if (line !== '') {
+            const obj_path = (obj_prefix + line).trim();
+            obj_list.push(obj_path);
         }
-    };
-
-    // Events functions
-    const evnt_mousedown = (e) => {
-        target_stick = e.target;
-
-        // Reset thumbsticks values
-        thumbsticks_values.camera_rotation = { x: 0, y: 0 };
-        thumbsticks_values.camera_position = { x: 0, y: 0 };
-
-        target_stick.classList.remove(thumb_btn_transition);
-
-        starting_pos = { x: e.x, y: e.y };
-        starting_transform = get_thumb_translation();
-
-        log.log(`Mouse target: ${target_stick.id}`);
-        log.log(`Starting transform: ${starting_transform.x}, ${starting_transform.y}`);
-        log.log(`Starting position: ${starting_pos.x}, ${starting_pos.y}`);
-
-        moving = true;
-        thumbsticks_active = true;
-    };
-
-    const evnt_mouseup = () => {
-        if (target_stick) {
-            target_stick.classList.add(thumb_btn_transition);
-            set_thumb_translation(0, 0);
-
-            moving = false;
-            thumbsticks_active = false;
-            target_stick = null;
-        }
-    };
-
-    const evnt_mousemove = (e) => {
-        if (moving) {
-            const diff_x = e.x - starting_pos.x;
-            const diff_y = e.y - starting_pos.y;
-
-            let new_transform_x = starting_transform.x + diff_x;
-            let new_transform_y = starting_transform.y + diff_y;
-
-            if (Math.abs(new_transform_x) > transform_limit) {
-                new_transform_x = Math.sign(new_transform_x) * transform_limit;
-            }
-
-            if (Math.abs(new_transform_y) > transform_limit) {
-                new_transform_y = Math.sign(new_transform_y) * transform_limit;
-            }
-
-            set_thumb_translation(new_transform_x, new_transform_y);
-
-            // Here we will convert the thumbstick values to a normalized range from -1 to 1
-            const x_normalized = new_transform_x / transform_limit;
-            const y_normalized = new_transform_y / transform_limit;
-
-            if (target_stick === thumb_cam_rot) {
-                // If we are rotating the camera, the range will be in radians: (-PI/180, PI/180)
-                thumbsticks_values.camera_rotation = { x: x_normalized * Math.PI / 180, y: y_normalized * Math.PI / 180 };
-
-                thumbsticks_values.camera_rotation.x /= rotation_smoothness;
-                thumbsticks_values.camera_rotation.y /= rotation_smoothness;
-            } else {
-                // If we are moving the camera, the range will be in the normalized range (-1, 1)
-                thumbsticks_values.camera_position = { x: x_normalized, y: y_normalized };
-
-                thumbsticks_values.camera_position.x /= position_smoothness;
-                thumbsticks_values.camera_position.y /= position_smoothness;
-            }
-        }
-    };
-
-    // Adding events
-    thumbs_btns.forEach((btn) => {
-        btn.addEventListener('mousedown', evnt_mousedown);
     });
 
-    document.addEventListener('mouseup', evnt_mouseup);
-    document.addEventListener('mousemove', evnt_mousemove);
+    return obj_list;
 }
 
-let dpad_active = false;
-let dpad_value = 0;
-function initializeDPads() {
-    const up_id = 'dpad_up';
-    const down_id = 'dpad_down';
-
-    const dpad_up = document.getElementById(up_id);
-    const dpad_down = document.getElementById(down_id);
-    const dpads = [dpad_up, dpad_down];
-
-    const dpad_pressed_src = './imgs/dpad_pressed.png';
-    const dpad_released_src = './imgs/dpad.png';
-
-    const dpad_smoothness = 10;
-
-    let target_dpad = null;
-
-    const evnt_mousedown = (e) => {
-        target_dpad = e.target;
-
-        if (target_dpad.id === up_id) {
-            dpad_value = 1;
-        } else if (target_dpad.id === down_id) {
-            dpad_value = -1;
-        }
-
-        dpad_value /= dpad_smoothness;
-
-        target_dpad.attributes.src.value = dpad_pressed_src;
-        dpad_active = true;
-    }
-
-    const evnt_mouseup = () => {
-        dpad_active = false;
-
-        if (target_dpad) {
-            target_dpad.attributes.src.value = dpad_released_src;
-            target_dpad = null;
-        }
-    }
-
-    for (let d in dpads) {
-        dpads[d].addEventListener('mousedown', evnt_mousedown);
-    }
-
-    document.addEventListener('mouseup', evnt_mouseup);
-}
-*/
 
 // ----------- APP PARAMETERS --------------
 const FPS = 60;
@@ -268,10 +130,11 @@ async function main() {
         }
     });
 
-    // Loading 3D objects
-    const ball_model = await fl.load3DObject('./objs/kit/ball_teamBlue.obj', gl, program);
 
-    models_to_render.push(ball_model);
+    // Load models list
+    const objs_list = await getObjsList();
+    console.log(objs_list);
+
 
     // ------------- Rendering setup -------------
     setFPSLimiter(FPS); // Limiting to 60 FPS

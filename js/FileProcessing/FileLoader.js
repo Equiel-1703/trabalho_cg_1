@@ -1,5 +1,5 @@
-import DoLog from "./DoLog.js";
-import Model3D from "./Model3D.js";
+import DoLog from "../Logging/DoLog.js";
+import Model3D from "../3DStuff/Model3D.js";
 import OBJParser from "./OBJParser.js";
 
 export default class FileLoader extends DoLog {

@@ -1,4 +1,4 @@
-import DoLog from "./DoLog.js";
+import DoLog from "../Logging/DoLog.js";
 
 export class Color {
     constructor(r, g, b, a = 1.0) {

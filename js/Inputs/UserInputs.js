@@ -1,5 +1,5 @@
-import DoLog from "./DoLog.js";
-import Vec4 from "./Vec4.js";
+import DoLog from "../Logging/DoLog.js";
+import Vec4 from "../3DStuff/Vec4.js";
 
 export default class UserInputs extends DoLog {
 	#thumbsticks_values = { camera_rotation: { x: 0, y: 0 }, camera_position: { x: 0, y: 0 } };
