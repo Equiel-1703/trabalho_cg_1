@@ -13,14 +13,17 @@ export default class Camera {
     #right_direction = Vec4.createZeroPoint();
 
     #camera_matrix = GraphicsMath.createIdentityMatrix();
-    
+
     #angle_x = 0;
     #angle_y = 0;
     #camera_rotation_matrix = GraphicsMath.createIdentityMatrix();
 
-    constructor(location) {
+    #move_direction_world = Vec4.createZeroPoint();
+    #move_amount = 0;
+
+    constructor(location = Vec4.createZeroPoint()) {
         this.#location = location;
-        
+
         this.#target_direction = new Vec4(0, 0, 1, 0);
         this.#up_direction = new Vec4(0, 1, 0, 0);
         this.#right_direction = new Vec4(1, 0, 0, 0);
@@ -31,9 +34,9 @@ export default class Camera {
 
     #calculateCameraMatrix() {
         const camera_matrix = [
-            this.#right_direction.x, this.#right_direction.y, this.#right_direction.z, -this.#location.x,
-            this.#up_direction.x, this.#up_direction.y, this.#up_direction.z, -this.#location.y,
-            this.#target_direction.x, this.#target_direction.y, this.#target_direction.z, -this.#location.z,
+            this.#right_direction.x, this.#right_direction.y, this.#right_direction.z, 0,
+            this.#up_direction.x, this.#up_direction.y, this.#up_direction.z, 0,
+            this.#target_direction.x, this.#target_direction.y, this.#target_direction.z, 0,
             0, 0, 0, 1
         ];
 
@@ -56,11 +59,13 @@ export default class Camera {
         return this.#right_direction;
     }
 
-    set location(value) {
-        this.#location = value;
+    move(direction, amount) {
+        this.#move_direction_world = direction;
+        this.#move_amount = amount;
 
-        // Update the camera matrix
-        this.#camera_matrix = this.#calculateCameraMatrix();
+        const move = this.#move_direction_world.scale(this.#move_amount);
+
+        this.#location = this.#location.add(move);
     }
 
     rotate(angle, axis) {
@@ -78,7 +83,12 @@ export default class Camera {
     }
 
     getCameraMatrix() {
-        return GraphicsMath.multiplyMatrices(this.#camera_rotation_matrix, this.#camera_matrix);
+        const camera_translation = GraphicsMath.createTranslationMatrix(-this.#location.x, -this.#location.y, -this.#location.z);
+        const camera_transform = GraphicsMath.multiplyMatrices(this.#camera_rotation_matrix, camera_translation);
+
+        const final_matrix = GraphicsMath.multiplyMatrices(this.#camera_matrix, camera_transform);
+
+        return final_matrix;
     }
 
     logCameraStats(log) {

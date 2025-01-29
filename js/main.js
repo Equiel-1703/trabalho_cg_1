@@ -1,4 +1,5 @@
 import OutputLog from "./OutputLog.js";
+import UserInputs from "./UserInputs.js";
 import { Color, WebGLUtils } from "./WebGLUtils.js";
 import FileLoader from "./FileLoader.js";
 import GraphicsMath from "./GraphicsMath.js";
@@ -36,6 +37,7 @@ function setFPSLimiter(fps_limit) {
     fps_limiter = 1000 / fps_limit;
 }
 
+/*
 let thumbsticks_values = { camera_rotation: { x: 0, y: 0 }, camera_position: { x: 0, y: 0 } };
 let thumbsticks_active = false;
 function initializeThumbsticks(log) {
@@ -195,17 +197,19 @@ function initializeDPads() {
 
     document.addEventListener('mouseup', evnt_mouseup);
 }
+*/
 
 // ----------- APP PARAMETERS --------------
 const FPS = 60;
 let models_to_render = [];
+let user_inputs = null;
 
 // ----------- MAIN FUNCTION --------------
 async function main() {
     const log = initializeLog();
 
-    initializeThumbsticks(log);
-    initializeDPads(log);
+    // Initialize user inputs
+    user_inputs = new UserInputs(log);
 
     // Initializing FileLoader and WebGLUtils
     const fl = new FileLoader(log);
@@ -214,7 +218,6 @@ async function main() {
     // WebGL initialization
     const canvas = document.getElementById('glcanvas');
     const gl = wgl_utils.initializeWebGLContext(canvas);
-
 
     // Loading shaders code
     const v_shader = await fl.loadShader('shaders/VertexShader.glsl');
@@ -270,38 +273,34 @@ async function main() {
 
     models_to_render.push(ball_model);
 
-    console.log(ball_model);
-
     // ------------- Rendering setup -------------
     setFPSLimiter(FPS); // Limiting to 60 FPS
     gl.enable(gl.DEPTH_TEST); // Enable depth test
 
     const start_render_time = performance.now();
 
-    const render = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_render_time);
-    requestAnimationFrame(render);
+    const callback = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_render_time);
+    requestAnimationFrame(callback);
 }
 
 // ----------------- RENDER CALLBACK -----------------
 function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
-    let camera_position = camera.location;
-    if (thumbsticks_active) {
+    let camera_controls = user_inputs.readCameraControls();
 
-        camera_position.x += thumbsticks_values.camera_position.x;
-        camera_position.z += (- thumbsticks_values.camera_position.y);
+    if (camera_controls.status_active) {
+        const rotation = camera_controls.controls_values.camera_rotation;
+        const move = camera_controls.controls_values.camera_move;
 
-        let rotation_x = thumbsticks_values.camera_rotation.x;
-        let rotation_y = thumbsticks_values.camera_rotation.y;
+        camera.move(move.direction, move.amount);
 
-        camera.rotate(-rotation_x, 'y');
-        camera.rotate(-rotation_y, 'x');
+        if (rotation.x !== 0) {
+            camera.rotate(-rotation.x, 'y');
+        }
+
+        if (rotation.y !== 0) {
+            camera.rotate(-rotation.y, 'x');
+        }
     }
-
-    if (dpad_active) {
-        camera_position.y += dpad_value;
-    }
-
-    camera.location = new Vec4(camera_position.x, camera_position.y, camera_position.z, 1.0);
 
     // Getting uniform locations
     const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');

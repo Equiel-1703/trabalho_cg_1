@@ -54,6 +54,42 @@ export default class Vec4 {
     }
 
     /**
+     * Adds another vector B to this vector.
+     * 
+     * @param {Vec4} B - The vector to add to this vector.
+     * @returns {Vec4} - The resulting vector from the addition.
+     */
+    add(B) {
+        let result = Vec4.createZeroPoint();
+
+        result.x = this.x + B.x;
+        result.y = this.y + B.y;
+        result.z = this.z + B.z;
+        result.w = this.w + B.w;
+
+        result.w = result.w > 1 ? 1 : result.w; // Clamp w to 1
+
+        return result;
+    }
+
+    /**
+     * Multiplies this vector by a scalar value.
+     * 
+     * @param {number} scalar - The scalar value to multiply the vector by.
+     * @returns {Vec4} - The resulting vector from the multiplication.
+     */
+    scale(scalar) {
+        let result = Vec4.createZeroPoint();
+
+        result.x = this.x * scalar;
+        result.y = this.y * scalar;
+        result.z = this.z * scalar;
+        result.w = this.w;
+
+        return result;
+    }
+
+    /**
      * Computes the length of the vector.
      * 
      * @returns {number} - The length of the vector.
@@ -72,10 +108,13 @@ export default class Vec4 {
 
         const length = this.length();
 
-        result.x = this.x / length;
-        result.y = this.y / length;
-        result.z = this.z / length;
-        result.w = 0; // Normalized vector is a vector, so w is 0
+        if (length > 0) {
+            result.x = this.x / length;
+            result.y = this.y / length;
+            result.z = this.z / length;
+        }
+        
+        result.w = 0; // Normalized vector is a vector, so w is 0}
 
         return result;
     }
