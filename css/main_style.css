@@ -63,6 +63,12 @@ h2 {
 }
 
 /********* Main section styling **************/
+:root {
+    --app-bg-color: rgb(20, 20, 20);
+    --app-active-color: rgb(45, 45, 45);
+    --app-dark-bg-color: rgb(10, 10, 10);
+}
+
 main {
     margin: 3rem 0;
     padding: 0;
@@ -90,7 +96,7 @@ main {
     width: 100%;
     height: auto;
 
-    background-color: rgb(20, 20, 20);
+    background-color: var(--app-bg-color);
 
     font-family: "Source Code Pro", serif;
     font-weight: 300;
@@ -141,6 +147,17 @@ label {
 
 #fps_counter {
     text-wrap: nowrap;
+    background-color: var(--app-dark-bg-color);
+
+    padding: 0.5rem;
+    margin: 0;
+
+    font-size: 0.8rem;
+
+    width: 100%;
+    height: auto;
+
+    box-sizing: border-box;
 }
 
 /* Canvas styling */
@@ -156,7 +173,7 @@ canvas {
     box-sizing: border-box;
 
     overflow-wrap: break-word;
-    overflow-y: scroll;
+    overflow-y: auto;
 
     padding: 1rem;
 
