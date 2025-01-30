@@ -26,7 +26,7 @@ export default class Camera {
         // Little adjustment to include the dpads y value
         move.y += direction.y;
 
-        this.#location = this.#location.add(move.normalize().scale(speed));
+        this.#location = this.#location.add(move.scale(speed));
     }
 
     transformMovement(input, yawRad, pitchRad) {

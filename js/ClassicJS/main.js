@@ -62,7 +62,7 @@ async function loadObjsList() {
 // ----------- GLOBAL PARAMETERS --------------
 const FPS = 60;
 const FPS_LIMIT = 1000 / FPS;
-const CAMERA_SPEED = 1; // Camera speed (pixels per second)
+const CAMERA_SPEED = 6; // Camera speed (pixels per second)
 
 const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
 
@@ -132,7 +132,7 @@ async function main() {
     setLightSource(light_direction, gl, program);
 
     // Creating camera
-    camera = new Camera(Vec4.createZeroPoint()); // By default, the camera is looking in the positive Z direction
+    camera = new Camera(new Vec4(0, 0, -10, 1)); // By default, the camera is looking in the positive Z direction
     document.addEventListener('keydown', (e) => {
         if (e.key === ' ') {
             camera.logCameraStats(log);

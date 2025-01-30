@@ -30,7 +30,7 @@ export default class PreviewCanvas extends DoLog {
 	static #FPS = 30;
 	static #fps_limit = 1000 / PreviewCanvas.#FPS;
 	static #fps_frame_counter = 0;
-	static #ROTATION_MATRIX = GraphicsMath.createRotationMatrix(GraphicsMath.degToRad(1), 'y');
+	static #ROTATION_MATRIX = GraphicsMath.createRotationMatrix(GraphicsMath.degToRad(-1), 'y');
 
 	constructor(canvasID, vs, fs, log) {
 		super(log, canvasID + '> ');
@@ -78,6 +78,7 @@ export default class PreviewCanvas extends DoLog {
 		// Enable depth test and culling
 		this.#gl.enable(this.#gl.DEPTH_TEST);
 		this.#gl.enable(this.#gl.CULL_FACE);
+		this.#gl.cullFace(this.#gl.FRONT);
 
 		if (log === null) {
 			PreviewCanvas.debug_log = false;

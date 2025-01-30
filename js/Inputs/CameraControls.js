@@ -21,15 +21,29 @@ export default class CameraControls extends DoLog {
 		const thumb_rot = this.#thumbsticks_values.camera_rotation;
 		const thumb_pos = this.#thumbsticks_values.camera_position;
 
-		let controls_values = {
-			camera_rotation: thumb_rot,
-			camera_move_direction: Vec4.createZeroPoint()
-		};
+		const rotation_speed = (Math.PI / 180); // 1 degree in radians is the maximum rotation speed
 
-		// Let's calculate the camera movement stuff
-		const move_direction = new Vec4(thumb_pos.x, this.#dpad_value, (-thumb_pos.y), 1);
-		// Normalize the direction vector
-		controls_values.camera_move_direction = move_direction.normalize();
+		// Create the direction vectors
+		let rotation_direction = new Vec4(thumb_rot.x, thumb_rot.y, 0, 1);
+		let move_direction = new Vec4(thumb_pos.x, this.#dpad_value, (-thumb_pos.y), 1);
+
+		// Normalize the direction vector if length is greater than 1.
+		// This will allow smooth rotation if the thumbstick is not moved to the limit.
+		const rotation_length = rotation_direction.length();
+		const move_length = move_direction.length();
+		if (rotation_length > 1) {
+			rotation_direction = rotation_direction.normalize();
+		}
+		if (move_length > 1) {
+			move_direction = move_direction.normalize();
+		}
+
+		const rotation_vector = rotation_direction.scale(rotation_speed);
+
+		let controls_values = {
+			camera_rotation: { x: rotation_vector.x, y: rotation_vector.y },
+			camera_move_direction: move_direction
+		};
 
 		// Return the values
 		return { status_active, controls_values };
@@ -49,8 +63,6 @@ export default class CameraControls extends DoLog {
 
 		const transform_limit = 35;
 		const thumb_btn_transition = 'thumb_btn_transition';
-
-		const rotation_smoothness = 2;
 
 		// Helper functions
 		const set_thumb_translation = (x, y) => {
@@ -120,13 +132,8 @@ export default class CameraControls extends DoLog {
 				const y_normalized = new_transform_y / transform_limit;
 
 				if (target_stick === thumb_cam_rot) {
-					// If we are rotating the camera, the range will be in radians: (-PI/180, PI/180)
-					this.#thumbsticks_values.camera_rotation = { x: x_normalized * Math.PI / 180, y: y_normalized * Math.PI / 180 };
-
-					this.#thumbsticks_values.camera_rotation.x /= rotation_smoothness;
-					this.#thumbsticks_values.camera_rotation.y /= rotation_smoothness;
+					this.#thumbsticks_values.camera_rotation = { x: x_normalized, y: y_normalized };
 				} else {
-					// If we are moving the camera, the range will be in the normalized range (-1, 1)
 					this.#thumbsticks_values.camera_position = { x: x_normalized, y: y_normalized };
 				}
 			}
