@@ -82,4 +82,18 @@ export default class Model3D {
     getRenderableObjects() {
         return this.objects;
     }
+
+    /**
+     * This method iterates over all objects in the model and call deleteObject on each one.
+     * This should trigger the garbage collector to free up GPU memory. The internal objects array is also emptied.
+     * 
+     * @param {WebGL2RenderingContext} gl - The WebGL2 context.
+     */
+    deleteModel(gl) {
+        for (let i = 0; i < this.objects.length; i++) {
+            this.objects[i].deleteObject(gl);
+        }
+
+        this.objects = [];
+    }
 }

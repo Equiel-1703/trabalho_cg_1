@@ -5,16 +5,16 @@ const tabs_mapping = {
 
 const tab_active_class = 'tab_active';
 
-let active_tab_id = '';
+let active_tab_button_id = '';
 const default_tab_id = 'tab_model_properties';
 
 function setActiveTab(tab_button_id, tab_content_id) {
 	const tab_button = document.getElementById(tab_button_id);
 	const tab_content = document.getElementById(tab_content_id);
 
-	if (active_tab_id !== '') {
-		const active_tab_button = document.getElementById(active_tab_id);
-		const active_tab_content = document.getElementById(tabs_mapping[active_tab_id]);
+	if (active_tab_button_id !== '') {
+		const active_tab_button = document.getElementById(active_tab_button_id);
+		const active_tab_content = document.getElementById(tabs_mapping[active_tab_button_id]);
 
 		active_tab_button.classList.remove(tab_active_class);
 		active_tab_content.style.display = 'none';
@@ -23,7 +23,7 @@ function setActiveTab(tab_button_id, tab_content_id) {
 	tab_button.classList.add(tab_active_class);
 	tab_content.style.display = 'block';
 
-	active_tab_id = tab_button_id;
+	active_tab_button_id = tab_button_id;
 }
 
 function initTabs() {
@@ -32,7 +32,7 @@ function initTabs() {
 	const tab_button_click = (e) => {
 		const tab_content_id = tabs_mapping[e.target.id];
 
-		if (tab_content_id !== undefined && tab_content_id !== active_tab_id) {
+		if (tab_content_id !== undefined && e.target.id !== active_tab_button_id) {
 			setActiveTab(e.target.id, tab_content_id);
 		}
 	};

@@ -1,7 +1,7 @@
 import DoLog from "../Logging/DoLog.js";
 import Vec4 from "../3DStuff/Vec4.js";
 
-export default class UserInputs extends DoLog {
+export default class CameraControls extends DoLog {
 	#thumbsticks_values = { camera_rotation: { x: 0, y: 0 }, camera_position: { x: 0, y: 0 } };
 	#thumbsticks_active = false;
 
@@ -9,7 +9,7 @@ export default class UserInputs extends DoLog {
 	#dpad_value = 0;
 
 	constructor(log) {
-		super(log, 'UserInputs> ');
+		super(log, 'CameraControls> ');
 
 		this.#initializeThumbsticks();
 		this.#initializeDPads();

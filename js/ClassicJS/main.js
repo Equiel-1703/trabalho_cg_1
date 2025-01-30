@@ -1,6 +1,8 @@
 import OutputLog from "../Logging/OutputLog.js";
-import UserInputs from "../Inputs/UserInputs.js";
 import FileLoader from "../FileProcessing/FileLoader.js";
+
+import CameraControls from "../Inputs/CameraControls.js";
+import ModelSelector from "../Inputs/ModelSelector.js";
 
 import PreviewCanvas from "../3DStuff/PreviewCanvas.js";
 import { Color, WebGLUtils } from "../3DStuff/WebGLUtils.js";
@@ -34,7 +36,7 @@ function setLightSource(light_direction, gl, program) {
     gl.uniform3fv(light_uniform, new Float32Array([ld_norm.x, ld_norm.y, ld_norm.z]));
 }
 
-async function getObjsList() {
+async function loadObjsList() {
     const file_list_path = './objs/kit/objs_list.files';
     const obj_prefix = './objs/kit/';
 
@@ -57,22 +59,21 @@ async function getObjsList() {
     return obj_list;
 }
 
-
-// ----------- APP PARAMETERS --------------
+// ----------- GLOBAL PARAMETERS --------------
 const FPS = 60;
 const FPS_LIMIT = 1000 / FPS;
 
 const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
 
 let models_to_render = [];
-let user_inputs = null;
+let camera_controls_obj = null;
 
 // ----------- MAIN FUNCTION --------------
 async function main() {
     const log = initializeLog();
 
     // Initialize user inputs
-    user_inputs = new UserInputs(log);
+    camera_controls_obj = new CameraControls(log);
 
     // Initializing FileLoader and WebGLUtils
     const fl = new FileLoader(log);
@@ -133,13 +134,14 @@ async function main() {
     // const objs_list = await getObjsList();
     // console.log(objs_list);
 
-    const obj_path = './objs/kit/ball.obj';
-    const preview_canvas_id = 'mc_1';
+    // Test code ----------------
 
-    log.log('main> Starting object preview in mc_1');
+    const objs_list = await loadObjsList();
 
-    const preview_canvas = new PreviewCanvas(preview_canvas_id, v_shader, f_shader, log);
-    preview_canvas.setModel(obj_path);
+    const ms = new ModelSelector(log, objs_list, v_shader, f_shader);
+
+    // End of test code ----------------
+
 
     // ------------- Rendering setup -------------
     gl.enable(gl.DEPTH_TEST); // Enable depth test
@@ -152,11 +154,11 @@ async function main() {
 
 // ----------------- RENDER CALLBACK -----------------
 function renderCallBack(wgl_utils, gl, program, clear_color, camera, s_time) {
-    let camera_controls = user_inputs.readCameraControls();
+    let camera_controls_output = camera_controls_obj.readCameraControls();
 
-    if (camera_controls.status_active) {
-        const rotation = camera_controls.controls_values.camera_rotation;
-        const move = camera_controls.controls_values.camera_move;
+    if (camera_controls_output.status_active) {
+        const rotation = camera_controls_output.controls_values.camera_rotation;
+        const move = camera_controls_output.controls_values.camera_move;
 
         camera.move(move.direction, move.amount);
 

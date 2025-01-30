@@ -80,6 +80,11 @@ export default class PreviewCanvas extends DoLog {
 	}
 
 	async setModel(model_path) {
+		if (this.#model !== null) {
+			this.disableRender();
+			this.#model.deleteModel(this.#gl);
+		}
+
 		this.#model = await this.#file_loader.load3DObject(model_path, this.#gl, this.#program);
 
 		this.enableRender();

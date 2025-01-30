@@ -9,7 +9,7 @@ import VAOFactory from "./VAOFactory.js";
  * 
  * @class
  * 
- * @property {VAO} vao - The Vertex Array Object for this object.
+ * @property {WebGLVertexArrayObject} vao - The Vertex Array Object for this object.
  * @property {Object} geometry_data - Processed geometry data containing position, texcoord, normal, and color. This is mostly used for debugging purposes.
  * @property {number} vertex_count - The number of vertices in this object.
  */
@@ -70,6 +70,15 @@ export default class Object3D {
      */
     getGeometryData() {
         return this.#geometry_data;
+    }
+
+    /**
+     * Deletes the VAO object from the GPU. This should trigger the garbage collector to free the memory.
+     * 
+     * @param {WebGLRenderingContext} gl - The WebGL rendering context.
+     */
+    deleteObject(gl) {
+        gl.deleteVertexArray(this.#vao);
     }
 
     /**

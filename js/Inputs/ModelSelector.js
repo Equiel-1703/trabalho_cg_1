@@ -1,0 +1,130 @@
+import DoLog from '../Logging/DoLog.js';
+
+import PreviewCanvas from '../3DStuff/PreviewCanvas.js';
+
+export default class ModelSelector extends DoLog {
+	#models_path_list = [];
+	#models_start_index = 0;
+
+	#displayed_models_path = [];
+	#preview_canvas = [];
+
+	static #MODEL_SELECTOR_TAB_ID = 'model_selector';
+	static #CANVAS_PREVIEW_IDS = ['mc_1', 'mc_2', 'mc_3', 'mc_4'];
+	static #NUM_CANVAS_PREVIEW = ModelSelector.#CANVAS_PREVIEW_IDS.length;
+
+	constructor(log, models_path_list, vs, fs) {
+		super(log, 'ModelSelector> ');
+
+		this.#models_path_list = models_path_list;
+
+		this.#initializePreviewCanvas(vs, fs);
+		this.#fillDisplayedModelsPath();
+
+		this.#initializeButtonsListeners();
+
+		const ms = document.getElementById(ModelSelector.#MODEL_SELECTOR_TAB_ID);
+		const objserver_callback = this.#observerCallback.bind(this);
+		const observer = new MutationObserver(objserver_callback);
+
+		observer.observe(ms, {
+			attributes: true,
+			attributeFilter: ['style']
+		});
+	}
+
+	#initializeButtonsListeners() {
+		const back_button_id = 'models_back';
+		const next_button_id = 'models_next';
+
+		const back_button = document.getElementById(back_button_id);
+		const next_button = document.getElementById(next_button_id);
+
+		const click_next = () => {
+			this.#rollDisplayedModels();
+			this.#fillDisplayedModelsPath();
+			this.#startRendering();
+		};
+
+		const click_back = () => {
+			this.#rollBackDisplayedModels();
+			this.#fillDisplayedModelsPath();
+			this.#startRendering();
+		};
+
+		back_button.addEventListener('click', click_back);
+		next_button.addEventListener('click', click_next);
+	}
+
+	#initializePreviewCanvas(vs, fs) {
+		for (let i = 0; i < ModelSelector.#NUM_CANVAS_PREVIEW; i++) {
+			const preview_canvas = new PreviewCanvas(ModelSelector.#CANVAS_PREVIEW_IDS[i], vs, fs, this.outputLog);
+			this.#preview_canvas.push(preview_canvas);
+		}
+	}
+
+	#fillDisplayedModelsPath() {
+		const start_index = this.#models_start_index;
+		const end_index = start_index + ModelSelector.#NUM_CANVAS_PREVIEW;
+
+		this.#displayed_models_path = this.#models_path_list.slice(start_index, end_index);
+	}
+
+	#rollDisplayedModels() {
+		this.#models_start_index += ModelSelector.#NUM_CANVAS_PREVIEW;
+
+		const list_length = this.#models_path_list.length;
+		const start_index = this.#models_start_index;
+
+		if (start_index >= list_length) {
+			this.#models_start_index = 0;
+		}
+	}
+
+	#rollBackDisplayedModels() {
+		this.#models_start_index -= ModelSelector.#NUM_CANVAS_PREVIEW;
+
+		const start_index = this.#models_start_index;
+
+		if (start_index <= 0) {
+			this.#models_start_index = this.#models_path_list.length - ModelSelector.#NUM_CANVAS_PREVIEW;
+		}
+	}
+
+	#startRendering() {
+		for (let i = 0; i < ModelSelector.#NUM_CANVAS_PREVIEW; i++) {
+			const model_path = this.#displayed_models_path[i];
+			const preview_canvas = this.#preview_canvas[i];
+
+			preview_canvas.setModel(model_path);
+		}
+	}
+
+	#stopRendering() {
+		for (let i = 0; i < ModelSelector.#NUM_CANVAS_PREVIEW; i++) {
+			const preview_canvas = this.#preview_canvas[i];
+
+			preview_canvas.disableRender();
+		}
+	}
+
+	#observerCallback(mutationsList) {
+		for (let mutation of mutationsList) {
+			if (mutation.type === 'attributes') {
+				switch (mutation.attributeName) {
+					case 'style':
+						const model_selector_tab = mutation.target;
+
+						if (model_selector_tab.style.display === 'block') {
+							this.#startRendering(); // Model selector tab is visible
+						} else if (model_selector_tab.style.display === 'none') {
+							this.#stopRendering(); // Model selector tab is hidden
+						}
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+}
