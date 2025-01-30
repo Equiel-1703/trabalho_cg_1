@@ -34,11 +34,6 @@ function setLightSource(light_direction, gl, program) {
     gl.uniform3fv(light_uniform, new Float32Array([ld_norm.x, ld_norm.y, ld_norm.z]));
 }
 
-let fps_limiter = 0;
-function setFPSLimiter(fps_limit) {
-    fps_limiter = 1000 / fps_limit;
-}
-
 async function getObjsList() {
     const file_list_path = './objs/kit/objs_list.files';
     const obj_prefix = './objs/kit/';
@@ -65,6 +60,8 @@ async function getObjsList() {
 
 // ----------- APP PARAMETERS --------------
 const FPS = 60;
+const FPS_LIMIT = 1000 / FPS;
+
 const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
 
 let models_to_render = [];
@@ -145,17 +142,16 @@ async function main() {
     preview_canvas.setModel(obj_path);
 
     // ------------- Rendering setup -------------
-    setFPSLimiter(FPS); // Limiting to 60 FPS
     gl.enable(gl.DEPTH_TEST); // Enable depth test
+    gl.enable(gl.CULL_FACE); // Enable face culling
 
-    const start_render_time = performance.now();
 
-    const callback = renderCallBack.bind(null, wgl_utils, gl, program, CLEAR_COLOR, camera, start_render_time);
+    const callback = renderCallBack.bind(null, wgl_utils, gl, program, CLEAR_COLOR, camera);
     requestAnimationFrame(callback);
 }
 
 // ----------------- RENDER CALLBACK -----------------
-function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
+function renderCallBack(wgl_utils, gl, program, clear_color, camera, s_time) {
     let camera_controls = user_inputs.readCameraControls();
 
     if (camera_controls.status_active) {
@@ -238,26 +234,23 @@ function renderCallBack(wgl_utils, gl, program, clear_color, camera, start) {
         }
     }
 
-    let end = performance.now();
-    const elapsed = end - start;
+    const end = performance.now();
+    const elapsed = end - s_time;
 
-    const diff = fps_limiter - elapsed;
+    const diff = FPS_LIMIT - elapsed;
 
     // Update FPS counter in HTML
     document.getElementById('fps_counter').innerText = `FPS: ${Math.round(1000 / (elapsed + diff))}`;
 
-    let start_2 = performance.now();
-
-    const callback = renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera, start_2);
-
-    if (diff > 0) {
-        setTimeout(() => {
-            requestAnimationFrame(callback, start_2);
-        }, diff);
-    } else {
-        requestAnimationFrame(callback, start_2);
+    const callback = () => {
+        requestAnimationFrame(renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera));
     }
 
+    if (diff > 0) {
+        setTimeout(callback, diff);
+    } else {
+        callback();
+    }
 }
 
 main();
