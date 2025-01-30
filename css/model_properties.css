@@ -80,6 +80,25 @@
 .prop_list>li>input[type="color"]::-webkit-color-swatch-wrapper {
 	padding: 0;
 }
+#texture_color_opacity {
+	height: var(--model-properties-icons-size);
+	width: 3rem;
+
+	text-align: center;
+	
+	color: white;
+	background-color: var(--app-bg-color);
+	
+	border: 1px solid white;
+	border-radius: var(--model-properties-border-radius);
+	
+	padding: 0;
+	padding-block: 0;
+	padding-inline: 0;
+	margin: 0;
+
+	box-sizing: border-box;
+}
 
 .prop_list>li>input[type="file"] {
 	display: none;
