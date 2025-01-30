@@ -1,6 +1,6 @@
 const tabs_mapping = {
 	'tab_model_properties': 'model_properties',
-	'tab_model_selector': 'model_selector'
+	'tab_model_creator': 'model_creator'
 };
 
 const tab_active_class = 'tab_active';

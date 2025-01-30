@@ -9,10 +9,10 @@
 
     <link rel="stylesheet" href="./css/main_style.css" />
     <link rel="stylesheet" href="./css/camera_controls.css" />
-    <link rel="stylesheet" href="./css/model_list.css" />
     <link rel="stylesheet" href="./css/tabs_menu.css" />
     <link rel="stylesheet" href="./css/model_properties.css" />
     <link rel="stylesheet" href="./css/model_selector.css" />
+    <link rel="stylesheet" href="./css/model_creator.css" />
 
     <link rel="icon" type="image/png" href="./imgs/icon_31.png" />
 </head>
@@ -27,8 +27,8 @@
     <main>
         <div id="app_container">
             <div id="left_menu" class="menu">
-                <ol id="models_list">
-                    <p>MODELS SELECTOR</p>
+                <ol id="model_selector">
+                    <p>MODEL SELECTOR</p>
                     <li class="model" id="model_1">Model 1</li>
                     <li class="model" id="model_1">Model 2</li>
                     <li class="model" id="model_1">Model 3</li>
@@ -79,7 +79,7 @@
             <div id="right_menu" class="menu">
                 <div class="tabs" id="tabs">
                     <button class="tab_button" id="tab_model_properties" type="button">Model Properties</button>
-                    <button class="tab_button" id="tab_model_selector" type="button">Create Model</button>
+                    <button class="tab_button" id="tab_model_creator" type="button">Create Model</button>
                 </div>
                 <div id="model_properties" class="tab_content">
                     <p>POSITION</p>
@@ -143,8 +143,8 @@
                         </li>
                     </ul>
                 </div>
-                <div id="model_selector" class="tab_content">
-                    <div id="model_selector_container">
+                <div id="model_creator" class="tab_content">
+                    <div id="model_creator_container">
                         <p>SELECT A MODEL</p>
                         <div id="model_grid">
                             <span>

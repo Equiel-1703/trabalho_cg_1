@@ -2,9 +2,9 @@ import OutputLog from "../Logging/OutputLog.js";
 import FileLoader from "../FileProcessing/FileLoader.js";
 
 import CameraControls from "../Inputs/CameraControls.js";
+import ModelCreatorMenu from "../Inputs/ModelCreatorMenu.js";
 import ModelSelector from "../Inputs/ModelSelector.js";
 
-import PreviewCanvas from "../3DStuff/PreviewCanvas.js";
 import { Color, WebGLUtils } from "../3DStuff/WebGLUtils.js";
 import GraphicsMath from "../3DStuff/GraphicsMath.js";
 import Vec4 from "../3DStuff/Vec4.js";
@@ -76,7 +76,7 @@ let camera = null;
 let camera_controls_obj = null;
 
 let file_loader = null;
-let model_selector = null;
+let model_creator = null;
 
 // ----------- MAIN FUNCTION --------------
 async function main() {
@@ -147,7 +147,12 @@ async function main() {
 
     const objs_list = await loadObjsList();
 
-    model_selector = new ModelSelector(null, objs_list, v_shader, f_shader);
+    model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
+
+    const ml = new ModelSelector();
+    ml.addModelToList('cube', null);
+
+    return;
 
     // End of test code ----------------------------------------------------------------------------------------------------------------
 
@@ -193,8 +198,8 @@ async function renderCallBack(s_time) {
     gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
 
     // Check if there are new models to render
-    if (model_selector.hasNewModels()) {
-        const new_models = model_selector.getNewModels();
+    if (model_creator.hasNewModels()) {
+        const new_models = model_creator.getNewModels();
 
         for (let mp of new_models) {
             if (loaded_models_paths.includes(mp)) {

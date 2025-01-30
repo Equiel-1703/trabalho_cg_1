@@ -9,14 +9,23 @@ import GraphicsMath from './GraphicsMath.js';
  * 
  * @class
  * 
+ * @property {string} name - The name of the model. Must be unique.
  * @property {Object3D[]} objects - The objects that make up the model.
  * 
  * @method getTransformationMatrix - Get the transformation matrix of the model.    
+ * @method setTransformationMatrix - Set the transformation matrix of the model.
+ * @method getRenderableObjects - Get the renderable objects of the model.
+ * @method deleteModel - This method iterates over all objects in the model and call deleteObject on each one.
+ * @method renameModel - Renames the model.
  */
 export default class Model3D {
+    #name = '';
     #transformation_matrix = GraphicsMath.createIdentityMatrix();
 
-    constructor(parsed_obj_data, parsed_materials, gl, program) {
+    constructor(name, parsed_obj_data, parsed_materials, gl, program) {
+        // Set the name of the model
+        this.#name = name;
+
         // The objects that make up the model
         this.objects = [];
 
@@ -81,6 +90,14 @@ export default class Model3D {
      */
     getRenderableObjects() {
         return this.objects;
+    }
+
+    getModelName() {
+        return this.#name;
+    }
+
+    renameModel(new_name) {
+        this.#name = new_name;
     }
 
     /**

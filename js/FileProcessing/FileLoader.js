@@ -62,8 +62,14 @@ export default class FileLoader extends DoLog {
 
         const parsed_materials = obj_parser.parseMTL(obj_materials_src.join('\n'));
 
-        const model = new Model3D(parsed_obj_data, parsed_materials, gl, program);
+        const model_name = this.#getFileNameFromPath(object_path);
+
+        const model = new Model3D(model_name, parsed_obj_data, parsed_materials, gl, program);
 
         return model;
+    }
+
+    #getFileNameFromPath(path) {
+        return path.split('\\').pop().split('/').pop().split('.')[0];
     }
 }
