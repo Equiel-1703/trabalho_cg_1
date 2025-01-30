@@ -29,15 +29,38 @@
 	display: grid;
 	grid-template-rows: 1fr 1fr;
 	grid-template-columns: 1fr 1fr;
-	gap: 1rem;
+
+	justify-items: center;
 }
 
 #model_grid>span {
+	user-select: auto;
+
 	display: flex;
-	flex-direction: column;
-	align-items: center;
+
 	justify-content: center;
+	align-items: center;
+	justify-items: center;
+
+	overflow: hidden;
+
+	width: 130px;
+	height: 130px;
 }
+
+.model_canvas {
+	border: 0;
+}
+
+.model_canvas:hover {
+	cursor: pointer;
+	border: 5px solid var(--btn-click-color);
+}
+
+.model_canvas:active {
+	border: 5px solid var(--app-dark-bg-color);
+}
+
 
 #buttons {
 	width: 100%;
