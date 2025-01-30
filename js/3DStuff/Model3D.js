@@ -10,26 +10,36 @@ import GraphicsMath from './GraphicsMath.js';
  * @class
  * 
  * @property {string} name - The name of the model. Must be unique.
+ * @property {string} model_path - The path to the model file.
  * @property {Object3D[]} objects - The objects that make up the model.
  * 
  * @method getTransformationMatrix - Get the transformation matrix of the model.    
  * @method setTransformationMatrix - Set the transformation matrix of the model.
  * @method getRenderableObjects - Get the renderable objects of the model.
+ * @method getModelName - Get the name of the model.
+ * @method renameModel - Rename the model.
+ * @method getModelPath - Get the path to the model file.
  * @method deleteModel - This method iterates over all objects in the model and call deleteObject on each one.
  * @method renameModel - Renames the model.
+ * @method duplicateModel - This method creates a new model with the same objects and transformation matrix as the current model.
  */
 export default class Model3D {
     #name = '';
+    #model_path = '';
     #transformation_matrix = GraphicsMath.createIdentityMatrix();
 
-    constructor(name, parsed_obj_data, parsed_materials, gl, program) {
+    constructor(name, model_path, parsed_obj_data, parsed_materials, gl, program) {
         // Set the name of the model
         this.#name = name;
+        // Set the path to the model file
+        this.#model_path = model_path;
 
         // The objects that make up the model
         this.objects = [];
 
-        this.#createObjects(parsed_obj_data, parsed_materials, gl, program);
+        if (parsed_obj_data && parsed_materials) {
+            this.#createObjects(parsed_obj_data, parsed_materials, gl, program);
+        }
     }
 
     /**
@@ -96,6 +106,10 @@ export default class Model3D {
         return this.#name;
     }
 
+    getModelPath() {
+        return this.#model_path;
+    }
+
     renameModel(new_name) {
         this.#name = new_name;
     }
@@ -112,5 +126,23 @@ export default class Model3D {
         }
 
         this.objects = [];
+    }
+
+    /**
+     * This method creates a new model with the same objects and transformation matrix as the current model.
+     * The transformation matrix of the new model is a copy of the current model's transformation matrix, not a reference.
+     * The objects, although, are references to the same objects as the current model. This was done to save memory.
+     * 
+     * @returns {Model3D} The new model.
+     */
+    duplicateModel() {
+        const new_model = new Model3D(this.#name, this.#model_path, null, null, null, null);
+
+        // Copy the transformation matrix
+        new_model.setTransformationMatrix(new Float32Array(this.#transformation_matrix));
+        // Set new model's objects to the same objects as the current model
+        new_model.objects = this.getRenderableObjects();
+
+        return new_model;
     }
 }

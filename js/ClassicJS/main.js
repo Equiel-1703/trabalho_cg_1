@@ -4,6 +4,7 @@ import FileLoader from "../FileProcessing/FileLoader.js";
 import CameraControls from "../Inputs/CameraControls.js";
 import ModelCreatorMenu from "../Inputs/ModelCreatorMenu.js";
 import ModelSelector from "../Inputs/ModelSelector.js";
+import PropertiesEditor from "../Inputs/PropertiesEditor.js";
 
 import { Color, WebGLUtils } from "../3DStuff/WebGLUtils.js";
 import GraphicsMath from "../3DStuff/GraphicsMath.js";
@@ -81,6 +82,7 @@ let camera_controls_obj = null;
 let file_loader = null;
 let model_creator = null;
 let model_selector = null;
+let properties_editor = null;
 
 // ----------- MAIN FUNCTION --------------
 async function main() {
@@ -143,20 +145,14 @@ async function main() {
         }
     });
 
-    // Test code ----------------------------------------------------------------------------------------------------------------------
-
-    // Load models list
-    // const objs_list = await getObjsList();
-    // console.log(objs_list);
 
     // Setup model creator menu
     const objs_list = await loadObjsList();
     model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
 
-    // Setup model selector menu
+    // Test code ----------------------------------------------------------------------------------------------------------------------
     model_selector = new ModelSelector(log);
-
-    // return;
+    properties_editor = new PropertiesEditor(log);
 
     // End of test code ----------------------------------------------------------------------------------------------------------------
 
@@ -201,53 +197,27 @@ async function renderCallBack(s_time) {
     const camera_matrix = camera.getCameraMatrix();
     gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
 
-    // Check if there are new models to add to the scene
-    if (model_creator.hasNewModels()) {
-        const new_models = model_creator.getNewModels();
-
-        for (let mp of new_models) {
-            if (loaded_models_paths.includes(mp)) {
-                // Change this later to duplicate the model and get a new transformation matrix
-                continue;
-            }
-
-            const nm = await file_loader.load3DObject(mp, gl, program);
-
-            model_selector.addModelToList(nm);
-            loaded_models_paths.push(mp);
-        }
-    }
-    models_to_render = model_selector.get3DModelsList();
+    // Update models to render
+    await updateModelsToRender();
+    const selected_model = model_selector.getSelectedModelName();
 
     wgl_utils.clearCanvas(CLEAR_COLOR, gl);
 
-    for (let m in models_to_render) {
-        const model = models_to_render[m];
+    for (const model of models_to_render) {
+        if (selected_model === model.getModelName()) {
+            // If the user is selecting a model, we need to update its transformation matrix
+            model.setTransformationMatrix(properties_editor.readTransformationsProperties());
+        }
 
         const objects = model.getRenderableObjects(); // Get renderable objects from model
 
-        // Create transformation matrix for model
-        // let object_transformation_matrix = GraphicsMath.createIdentityMatrix();
-
-        // Apply rotation to model
-        // TODO...
-        // Apply scaling to model
-        // TODO...
-        // Apply translation to model
-        // object_transformation_matrix = GraphicsMath.multiplyMatrices(GraphicsMath.createTranslationMatrix(cube_x, cube_y, cube_z), object_transformation_matrix);
-
-        // Now we will apply this transformation matrix to the initial transformation matrix of the model
-        // object_transformation_matrix = GraphicsMath.multiplyMatrices(object_transformation_matrix, model.getTransformationMatrix());
-
         // Set transformation matrix (since it's the same for all objects, we can set it here)
-        // gl.uniformMatrix4fv(transformation_uniform, false, object_transformation_matrix);
         gl.uniformMatrix4fv(transformation_uniform, false, model.getTransformationMatrix());
 
-        for (let o in objects) {
-            let obj = objects[o];
-
+        for (const obj of objects) {
             // Set object material settings
             const material = obj.getMaterial();
+
             if (material) {
                 // Enable material color
                 gl.uniform1f(enable_m_color_uniform, 1.0);
@@ -291,5 +261,39 @@ async function renderCallBack(s_time) {
         callback();
     }
 }
+
+async function updateModelsToRender() {
+    // Check if there are new models to add to the scene
+    if (model_creator.hasNewModels()) {
+        const new_models_paths = model_creator.getNewModels();
+
+        for (let mp of new_models_paths) {
+            let nm = null;
+
+            // Check if we already loaded this model
+            if (loaded_models_paths.includes(mp)) {
+                // Model already loaded, let's duplicate it
+                for (const m of models_to_render) {
+                    if (m.getModelPath() === mp) {
+                        nm = m.duplicateModel();
+                        console.log('Model duplicated.');
+                        console.log(nm);
+                        break;
+                    }
+                }
+            } else {
+                // Model not loaded, let's load it
+                nm = await file_loader.load3DObject(mp, gl, program);
+                loaded_models_paths.push(mp);
+            }
+
+            model_selector.addModelToList(nm);
+        }
+    }
+
+    // Update models to render
+    models_to_render = model_selector.get3DModelsList();
+}
+
 
 main();

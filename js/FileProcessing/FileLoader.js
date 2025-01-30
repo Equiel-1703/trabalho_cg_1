@@ -64,7 +64,7 @@ export default class FileLoader extends DoLog {
 
         const model_name = this.#getFileNameFromPath(object_path);
 
-        const model = new Model3D(model_name, parsed_obj_data, parsed_materials, gl, program);
+        const model = new Model3D(model_name, object_path, parsed_obj_data, parsed_materials, gl, program);
 
         return model;
     }

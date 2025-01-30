@@ -56,7 +56,7 @@ export default class ModelSelector extends DoLog {
 		li.addEventListener('click', (e) => {
 			const model_name = e.target.textContent;
 
-			this.LOG('Selected model:', this.#selected_model_name);
+			this.LOG('Selected model: ' + model_name);
 
 			// Unselect the previous model
 			if (this.#selected_model_name !== null) {
