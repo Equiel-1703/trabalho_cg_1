@@ -62,11 +62,21 @@ async function loadObjsList() {
 // ----------- GLOBAL PARAMETERS --------------
 const FPS = 60;
 const FPS_LIMIT = 1000 / FPS;
+const CAMERA_SPEED = 1; // Camera speed (pixels per second)
 
 const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
 
 let models_to_render = [];
+let loaded_models_paths = [];
+
+let gl = null;
+let program = null;
+let wgl_utils = null;
+let camera = null;
 let camera_controls_obj = null;
+
+let file_loader = null;
+let model_selector = null;
 
 // ----------- MAIN FUNCTION --------------
 async function main() {
@@ -76,16 +86,16 @@ async function main() {
     camera_controls_obj = new CameraControls(log);
 
     // Initializing FileLoader and WebGLUtils
-    const fl = new FileLoader(log);
-    const wgl_utils = new WebGLUtils(log);
+    file_loader = new FileLoader(log);
+    wgl_utils = new WebGLUtils(log);
 
     // WebGL initialization
     const canvas = document.getElementById('glcanvas');
-    const gl = wgl_utils.initializeWebGLContext(canvas);
+    gl = wgl_utils.initializeWebGLContext(canvas);
 
     // Loading shaders code
-    const v_shader = await fl.loadShader('shaders/VertexShader.glsl');
-    const f_shader = await fl.loadShader('shaders/FragmentShader.glsl');
+    const v_shader = await file_loader.loadShader('shaders/VertexShader.glsl');
+    const f_shader = await file_loader.loadShader('shaders/FragmentShader.glsl');
 
     log.success_log('main> Shaders code loaded.');
 
@@ -100,7 +110,7 @@ async function main() {
     log.success_log('main> Shaders created.');
 
     // Creating program
-    const program = wgl_utils.createProgram(vertex_shader, fragment_shader);
+    program = wgl_utils.createProgram(vertex_shader, fragment_shader);
 
     if (!program) {
         throw new Error('Failed to create program.');
@@ -122,45 +132,45 @@ async function main() {
     setLightSource(light_direction, gl, program);
 
     // Creating camera
-    const camera = new Camera(Vec4.createZeroPoint()); // By default, the camera is looking in the positive Z direction
+    camera = new Camera(Vec4.createZeroPoint()); // By default, the camera is looking in the positive Z direction
     document.addEventListener('keydown', (e) => {
         if (e.key === ' ') {
             camera.logCameraStats(log);
         }
     });
 
+    // Test code ----------------------------------------------------------------------------------------------------------------------
 
     // Load models list
     // const objs_list = await getObjsList();
     // console.log(objs_list);
 
-    // Test code ----------------
-
     const objs_list = await loadObjsList();
 
-    const ms = new ModelSelector(log, objs_list, v_shader, f_shader);
+    model_selector = new ModelSelector(null, objs_list, v_shader, f_shader);
 
-    // End of test code ----------------
+    // End of test code ----------------------------------------------------------------------------------------------------------------
 
 
     // ------------- Rendering setup -------------
     gl.enable(gl.DEPTH_TEST); // Enable depth test
     gl.enable(gl.CULL_FACE); // Enable face culling
 
+    // Configure face culling
+    gl.cullFace(gl.FRONT);
 
-    const callback = renderCallBack.bind(null, wgl_utils, gl, program, CLEAR_COLOR, camera);
-    requestAnimationFrame(callback);
+    requestAnimationFrame(renderCallBack);
 }
 
 // ----------------- RENDER CALLBACK -----------------
-function renderCallBack(wgl_utils, gl, program, clear_color, camera, s_time) {
+async function renderCallBack(s_time) {
     let camera_controls_output = camera_controls_obj.readCameraControls();
 
     if (camera_controls_output.status_active) {
         const rotation = camera_controls_output.controls_values.camera_rotation;
-        const move = camera_controls_output.controls_values.camera_move;
+        const move_dir = camera_controls_output.controls_values.camera_move_direction;
 
-        camera.move(move.direction, move.amount);
+        camera.move(move_dir, CAMERA_SPEED / FPS);
 
         if (rotation.x !== 0) {
             camera.rotate(-rotation.x, 'y');
@@ -182,7 +192,23 @@ function renderCallBack(wgl_utils, gl, program, clear_color, camera, s_time) {
     const camera_matrix = camera.getCameraMatrix();
     gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
 
-    wgl_utils.clearCanvas(clear_color, gl);
+    // Check if there are new models to render
+    if (model_selector.hasNewModels()) {
+        const new_models = model_selector.getNewModels();
+
+        for (let mp of new_models) {
+            if (loaded_models_paths.includes(mp)) {
+                continue;
+            }
+
+            const nm = await file_loader.load3DObject(mp, gl, program);
+
+            models_to_render.push(nm);
+            loaded_models_paths.push(mp);
+        }
+    }
+
+    wgl_utils.clearCanvas(CLEAR_COLOR, gl);
 
     for (let m in models_to_render) {
         const model = models_to_render[m];
@@ -242,10 +268,10 @@ function renderCallBack(wgl_utils, gl, program, clear_color, camera, s_time) {
     const diff = FPS_LIMIT - elapsed;
 
     // Update FPS counter in HTML
-    document.getElementById('fps_counter').innerText = `FPS: ${Math.round(1000 / (elapsed + diff))}`;
+    document.getElementById('fps_counter').innerText = `FPS: ${Math.round(1000 / (elapsed + Math.abs(diff)))}`;
 
     const callback = () => {
-        requestAnimationFrame(renderCallBack.bind(null, wgl_utils, gl, program, clear_color, camera));
+        requestAnimationFrame(renderCallBack);
     }
 
     if (diff > 0) {

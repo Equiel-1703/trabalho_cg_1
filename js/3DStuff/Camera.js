@@ -8,64 +8,44 @@ import Vec4 from './Vec4.js';
 export default class Camera {
     #location = Vec4.createZeroPoint();
 
-    #target_direction = Vec4.createZeroPoint();
-    #up_direction = Vec4.createZeroPoint();
-    #right_direction = Vec4.createZeroPoint();
-
-    #camera_matrix = GraphicsMath.createIdentityMatrix();
-
     #angle_x = 0;
     #angle_y = 0;
     #camera_rotation_matrix = GraphicsMath.createIdentityMatrix();
 
-    #move_direction_world = Vec4.createZeroPoint();
-    #move_amount = 0;
-
     constructor(location = Vec4.createZeroPoint()) {
         this.#location = location;
-
-        this.#target_direction = new Vec4(0, 0, 1, 0);
-        this.#up_direction = new Vec4(0, 1, 0, 0);
-        this.#right_direction = new Vec4(1, 0, 0, 0);
-
-        // Calculate the camera matrix
-        this.#camera_matrix = this.#calculateCameraMatrix();
-    }
-
-    #calculateCameraMatrix() {
-        const camera_matrix = [
-            this.#right_direction.x, this.#right_direction.y, this.#right_direction.z, 0,
-            this.#up_direction.x, this.#up_direction.y, this.#up_direction.z, 0,
-            this.#target_direction.x, this.#target_direction.y, this.#target_direction.z, 0,
-            0, 0, 0, 1
-        ];
-
-        return GraphicsMath.transposeMatrix(camera_matrix);
     }
 
     get location() {
         return this.#location;
     }
 
-    get target_direction() {
-        return this.#target_direction;
+    move(direction, speed) {
+        const move = this.transformMovement(direction, -this.#angle_y, this.#angle_x);
+
+        // Little adjustment to include the dpads y value
+        move.y += direction.y;
+
+        this.#location = this.#location.add(move.normalize().scale(speed));
     }
 
-    get up_direction() {
-        return this.#up_direction;
-    }
+    transformMovement(input, yawRad, pitchRad) {
+        // Compute forward vector
+        let forwardX = Math.cos(pitchRad) * Math.sin(yawRad);
+        let forwardY = Math.sin(pitchRad);
+        let forwardZ = Math.cos(pitchRad) * Math.cos(yawRad);
 
-    get right_direction() {
-        return this.#right_direction;
-    }
+        // Compute right vector
+        let rightX = Math.cos(yawRad);
+        let rightY = 0; // No Y in the right vector
+        let rightZ = -Math.sin(yawRad);
 
-    move(direction, amount) {
-        this.#move_direction_world = direction;
-        this.#move_amount = amount;
+        // Transform movement input
+        let finalX = input.x * rightX + input.z * forwardX;
+        let finalY = input.z * forwardY; // Only affected by forward direction
+        let finalZ = input.x * rightZ + input.z * forwardZ;
 
-        const move = this.#move_direction_world.scale(this.#move_amount);
-
-        this.#location = this.#location.add(move);
+        return new Vec4(finalX, finalY, finalZ, 1);
     }
 
     rotate(angle, axis) {
@@ -84,17 +64,14 @@ export default class Camera {
 
     getCameraMatrix() {
         const camera_translation = GraphicsMath.createTranslationMatrix(-this.#location.x, -this.#location.y, -this.#location.z);
-        const camera_transform = GraphicsMath.multiplyMatrices(this.#camera_rotation_matrix, camera_translation);
 
-        const final_matrix = GraphicsMath.multiplyMatrices(this.#camera_matrix, camera_transform);
+        const camera_matrix = GraphicsMath.multiplyMatrices(this.#camera_rotation_matrix, camera_translation);
 
-        return final_matrix;
+        return camera_matrix;
     }
 
     logCameraStats(log) {
         log.log('Camera> Location: ' + this.#location.x + ', ' + this.#location.y + ', ' + this.#location.z);
-        log.log('Camera> Target: ' + this.#target_direction.x + ', ' + this.#target_direction.y + ', ' + this.#target_direction.z);
-        log.log('Camera> Up: ' + this.#up_direction.x + ', ' + this.#up_direction.y + ', ' + this.#up_direction.z);
-        log.log('Camera> Right: ' + this.#right_direction.x + ', ' + this.#right_direction.y + ', ' + this.#right_direction.z);
+        log.log('Camera> Rotation: ' + 'X: ' + this.#angle_x + ', Y: ' + this.#angle_y);
     }
 }

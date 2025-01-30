@@ -23,19 +23,13 @@ export default class CameraControls extends DoLog {
 
 		let controls_values = {
 			camera_rotation: thumb_rot,
-			camera_move: {
-				direction: Vec4.createZeroPoint(),
-				amount: 0
-			}
+			camera_move_direction: Vec4.createZeroPoint()
 		};
 
 		// Let's calculate the camera movement stuff
 		const move_direction = new Vec4(thumb_pos.x, this.#dpad_value, (-thumb_pos.y), 1);
-		const move_amount = move_direction.length();
-		
 		// Normalize the direction vector
-		controls_values.camera_move.direction = move_direction.normalize();
-		controls_values.camera_move.amount = move_amount; // This is the amount of movement
+		controls_values.camera_move_direction = move_direction.normalize();
 
 		// Return the values
 		return { status_active, controls_values };
@@ -57,7 +51,6 @@ export default class CameraControls extends DoLog {
 		const thumb_btn_transition = 'thumb_btn_transition';
 
 		const rotation_smoothness = 2;
-		const position_smoothness = 10;
 
 		// Helper functions
 		const set_thumb_translation = (x, y) => {
@@ -135,9 +128,6 @@ export default class CameraControls extends DoLog {
 				} else {
 					// If we are moving the camera, the range will be in the normalized range (-1, 1)
 					this.#thumbsticks_values.camera_position = { x: x_normalized, y: y_normalized };
-
-					this.#thumbsticks_values.camera_position.x /= position_smoothness;
-					this.#thumbsticks_values.camera_position.y /= position_smoothness;
 				}
 			}
 		};
@@ -164,8 +154,6 @@ export default class CameraControls extends DoLog {
 		const dpad_pressed_src = './imgs/dpad_pressed.png';
 		const dpad_released_src = './imgs/dpad.png';
 
-		const dpad_smoothness = 40;
-
 		let target_dpad = null;
 
 		const evnt_mousedown = (e) => {
@@ -177,7 +165,7 @@ export default class CameraControls extends DoLog {
 				this.#dpad_value = -1;
 			}
 
-			this.#dpad_value /= dpad_smoothness;
+			this.#dpad_value;
 
 			target_dpad.attributes.src.value = dpad_pressed_src;
 			this.#dpad_active = true;

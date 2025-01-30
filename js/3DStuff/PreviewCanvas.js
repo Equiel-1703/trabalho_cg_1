@@ -23,6 +23,7 @@ export default class PreviewCanvas extends DoLog {
 
 	#render_enabled = false;
 
+	static debug_log = true;
 
 	static #clearColor = new Color(1.0, 1.0, 1.0, 1.0); // White
 	static #STARTING_CAMERA_LOCATION = new Vec4(0, 0, -10, 1);
@@ -77,6 +78,10 @@ export default class PreviewCanvas extends DoLog {
 		// Enable depth test and culling
 		this.#gl.enable(this.#gl.DEPTH_TEST);
 		this.#gl.enable(this.#gl.CULL_FACE);
+
+		if (log === null) {
+			PreviewCanvas.debug_log = false;
+		}
 	}
 
 	async setModel(model_path) {
@@ -88,6 +93,10 @@ export default class PreviewCanvas extends DoLog {
 		this.#model = await this.#file_loader.load3DObject(model_path, this.#gl, this.#program);
 
 		this.enableRender();
+	}
+
+	getCanvasElement() {
+		return this.#canvas;
 	}
 
 	enableRender() {
@@ -159,8 +168,8 @@ export default class PreviewCanvas extends DoLog {
 
 			PreviewCanvas.#fps_frame_counter++;
 
-			if (PreviewCanvas.#fps_frame_counter >= PreviewCanvas.#FPS) {
-				this.LOG(`FPS: ${Math.round(1000 / (elapsed_time + time_to_wait))}`);
+			if (this.debug_log && PreviewCanvas.#fps_frame_counter >= PreviewCanvas.#FPS) {
+				this.LOG(`FPS: ${Math.round(1000 / (elapsed_time + Math.abs(time_to_wait)))}`, 'info');
 				PreviewCanvas.#fps_frame_counter = 0;
 			}
 		}

@@ -13,6 +13,8 @@ export default class ModelSelector extends DoLog {
 	static #CANVAS_PREVIEW_IDS = ['mc_1', 'mc_2', 'mc_3', 'mc_4'];
 	static #NUM_CANVAS_PREVIEW = ModelSelector.#CANVAS_PREVIEW_IDS.length;
 
+	#created_models = [];
+
 	constructor(log, models_path_list, vs, fs) {
 		super(log, 'ModelSelector> ');
 
@@ -31,6 +33,18 @@ export default class ModelSelector extends DoLog {
 			attributes: true,
 			attributeFilter: ['style']
 		});
+	}
+
+	getNewModels() {
+		const cm = this.#created_models;
+
+		this.#created_models = []; // Once read, clear the list
+
+		return cm;
+	}
+
+	hasNewModels() {
+		return this.#created_models.length > 0;
 	}
 
 	#initializeButtonsListeners() {
@@ -57,8 +71,21 @@ export default class ModelSelector extends DoLog {
 	}
 
 	#initializePreviewCanvas(vs, fs) {
+		const canvas_click = (e) => {
+			const canvas_id = e.target.id;
+
+			const index = ModelSelector.#CANVAS_PREVIEW_IDS.indexOf(canvas_id);
+			const model_path = this.#displayed_models_path[index];
+
+			this.LOG('Selected model: ' + model_path, 'info');
+			this.#created_models.push(model_path);
+		}
+
 		for (let i = 0; i < ModelSelector.#NUM_CANVAS_PREVIEW; i++) {
 			const preview_canvas = new PreviewCanvas(ModelSelector.#CANVAS_PREVIEW_IDS[i], vs, fs, this.outputLog);
+
+			preview_canvas.getCanvasElement().addEventListener('click', canvas_click);
+
 			this.#preview_canvas.push(preview_canvas);
 		}
 	}
