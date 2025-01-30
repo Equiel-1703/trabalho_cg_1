@@ -1,6 +1,8 @@
-import Model3D from "../3DStuff/Model3D";
+import DoLog from "../Logging/DoLog.js";
 
-export default class ModelSelector {
+import Model3D from "../3DStuff/Model3D.js";
+
+export default class ModelSelector extends DoLog {
 	/** @type {string} */
 	#selected_model_name = null;
 
@@ -14,10 +16,10 @@ export default class ModelSelector {
 	/** @type {HTMLUListElement} */
 	#model_selector_ul = null;
 
-	constructor() {
+	constructor(log) {
+		super(log, 'ModelSelector> ');
 		this.#model_selector_ul = document.getElementById('model_selector');
 	}
-
 
 	/**
 	 * Add a model to the list of selectable models.
@@ -40,23 +42,51 @@ export default class ModelSelector {
 			model_element.renameModel(model_name); // Rename the model
 		}
 
-		// Add to the list
+		// Add model to the mapping
 		this.#models_mapping[model_name] = model_element;
 
 		// Create the list item <li>
 		const li = document.createElement('li');
-		const li_class = 'model';
+		const li_class = 'model_li';
+		const li_selected_class = 'model_selected';
 
 		li.textContent = model_name;
 		li.classList.add(li_class);
 
 		li.addEventListener('click', (e) => {
-			const target = e.target;
-			const selected_model_name = target.textContent;
+			const model_name = e.target.textContent;
 
-			console.log('Selected model:', selected_model_name);
+			this.LOG('Selected model:', this.#selected_model_name);
+
+			// Unselect the previous model
+			if (this.#selected_model_name !== null) {
+				const prev_li = document.querySelector(`.${li_class}.${li_selected_class}`);
+				prev_li.classList.remove(li_selected_class);
+			}
+
+			// Select the new model
+			this.#selected_model_name = model_name;
+			e.target.classList.add(li_selected_class);
 		});
 
 		this.#model_selector_ul.appendChild(li);
+	}
+
+	/**
+	 * Returns a list of all the 3D selectable models in the application.
+	 * 
+	 * @returns {Model3D[]} - The list of 3D models.
+	 */
+	get3DModelsList() {
+		return Object.values(this.#models_mapping);
+	}
+
+	/**
+	 * Returns the selected model name.
+	 * 
+	 * @returns {string} - The selected model name.
+	 */
+	getSelectedModelName() {
+		return this.#selected_model_name;
 	}
 }

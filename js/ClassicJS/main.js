@@ -67,6 +67,9 @@ const CAMERA_SPEED = 6; // Camera speed (pixels per second)
 const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
 
 let models_to_render = [];
+// This boy will keep track of the loaded models we have.
+// If we need to load a new model, we will check if it's already loaded.
+// If it is, we can create a new transform matrix for it and render it with the same buffers.
 let loaded_models_paths = [];
 
 let gl = null;
@@ -77,6 +80,7 @@ let camera_controls_obj = null;
 
 let file_loader = null;
 let model_creator = null;
+let model_selector = null;
 
 // ----------- MAIN FUNCTION --------------
 async function main() {
@@ -121,7 +125,7 @@ async function main() {
     log.success_log('main> Program created.');
 
     // Creating perspective matrix
-    const fov = 60;
+    const fov = 30;
     const aspect_ratio = canvas.width / canvas.height;
     const near = 0.1;
     const far = 1000;
@@ -145,14 +149,14 @@ async function main() {
     // const objs_list = await getObjsList();
     // console.log(objs_list);
 
+    // Setup model creator menu
     const objs_list = await loadObjsList();
-
     model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
 
-    const ml = new ModelSelector();
-    ml.addModelToList('cube', null);
+    // Setup model selector menu
+    model_selector = new ModelSelector(log);
 
-    return;
+    // return;
 
     // End of test code ----------------------------------------------------------------------------------------------------------------
 
@@ -167,7 +171,7 @@ async function main() {
     requestAnimationFrame(renderCallBack);
 }
 
-// ----------------- RENDER CALLBACK -----------------
+// ---------------------------------- RENDER CALLBACK ----------------------------------
 async function renderCallBack(s_time) {
     let camera_controls_output = camera_controls_obj.readCameraControls();
 
@@ -197,21 +201,23 @@ async function renderCallBack(s_time) {
     const camera_matrix = camera.getCameraMatrix();
     gl.uniformMatrix4fv(camera_uniform, false, camera_matrix);
 
-    // Check if there are new models to render
+    // Check if there are new models to add to the scene
     if (model_creator.hasNewModels()) {
         const new_models = model_creator.getNewModels();
 
         for (let mp of new_models) {
             if (loaded_models_paths.includes(mp)) {
+                // Change this later to duplicate the model and get a new transformation matrix
                 continue;
             }
 
             const nm = await file_loader.load3DObject(mp, gl, program);
 
-            models_to_render.push(nm);
+            model_selector.addModelToList(nm);
             loaded_models_paths.push(mp);
         }
     }
+    models_to_render = model_selector.get3DModelsList();
 
     wgl_utils.clearCanvas(CLEAR_COLOR, gl);
 

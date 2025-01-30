@@ -49,6 +49,17 @@
 	box-sizing: border-box;
 }
 
+#model_selector>li:hover {
+	background-color: var(--app-active-color) !important;
+	box-shadow: inset 0 0 0 1px white;
+}
+
 #model_selector>li:nth-child(odd) {
 	background-color: var(--list-even-color);
+}
+
+.model_selected {
+	background-color: rgb(40 19 50) !important;
+	padding-left: 1rem !important;
+	font-weight: 700 !important;
 }
