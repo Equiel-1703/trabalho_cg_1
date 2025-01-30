@@ -94,7 +94,7 @@ main {
     justify-content: center;
 
     width: 100%;
-    height: auto;
+    height: 450px;
     background-color: var(--app-bg-color);
 
     font-family: "Source Code Pro", serif;
