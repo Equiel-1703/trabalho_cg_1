@@ -5,8 +5,6 @@ import FileLoader from '../FileProcessing/FileLoader.js';
 import { Color, WebGLUtils } from './WebGLUtils.js';
 import GraphicsMath from './GraphicsMath.js';
 import Camera from './Camera.js';
-import Model3D from './Model3D.js';
-import Object3D from './Object3D.js';
 import Vec4 from './Vec4.js';
 
 
@@ -20,14 +18,18 @@ export default class PreviewCanvas extends DoLog {
 	#camera = null;
 
 	#file_loader = null;
+	/** @type {Model3D} */
 	#model = null;
 
 	#render_enabled = false;
+
 
 	static #clearColor = new Color(1.0, 1.0, 1.0, 1.0); // White
 	static #STARTING_CAMERA_LOCATION = new Vec4(0, 0, -10, 1);
 	static #FPS = 30;
 	static #fps_limit = 1000 / PreviewCanvas.#FPS;
+	static #fps_frame_counter = 0;
+	static #ROTATION_MATRIX = GraphicsMath.createRotationMatrix(GraphicsMath.degToRad(1), 'y');
 
 	constructor(canvasID, vs, fs, log) {
 		super(log, canvasID + '> ');
@@ -92,22 +94,22 @@ export default class PreviewCanvas extends DoLog {
 		this.#render_enabled = false;
 	}
 
-	renderLoop() {
+	renderLoop(s_time) {
 		if (!this.#render_enabled) {
 			return;
 		}
 
-		const start_time = performance.now();
-		const program = this.#program;
-
 		// Getting uniform locations
-		const transformation_uniform = this.#gl.getUniformLocation(program, 'u_model_matrix');
-		const enable_v_color_uniform = this.#gl.getUniformLocation(program, 'u_enable_vertex_color');
-		const enable_m_color_uniform = this.#gl.getUniformLocation(program, 'u_enable_material_color');
-		const material_color = this.#gl.getUniformLocation(program, 'u_material_color');
+		const transformation_uniform = this.#gl.getUniformLocation(this.#program, 'u_model_matrix');
+		const enable_v_color_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_vertex_color');
+		const enable_m_color_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_material_color');
+		const material_color = this.#gl.getUniformLocation(this.#program, 'u_material_color');
 
 		// Set transformation matrix
 		const model_matrix = this.#model.getTransformationMatrix();
+		const new_t_matrx = GraphicsMath.multiplyMatrices(PreviewCanvas.#ROTATION_MATRIX, model_matrix);
+
+		this.#model.setTransformationMatrix(new_t_matrx);
 		this.#gl.uniformMatrix4fv(transformation_uniform, false, model_matrix);
 
 		// Clearing the canvas
@@ -144,17 +146,24 @@ export default class PreviewCanvas extends DoLog {
 		}
 
 		const end_time = performance.now();
-		const elapsed_time = end_time - start_time;
+		const elapsed_time = end_time - s_time;
 		const time_to_wait = PreviewCanvas.#fps_limit - elapsed_time;
 
-		if (time_to_wait > 0) {
-			setTimeout(() => requestAnimationFrame(this.renderLoop.bind(this)),
-				time_to_wait);
-		} else {
+		const callback = () => {
 			requestAnimationFrame(this.renderLoop.bind(this));
+
+			PreviewCanvas.#fps_frame_counter++;
+
+			if (PreviewCanvas.#fps_frame_counter >= PreviewCanvas.#FPS) {
+				this.LOG(`FPS: ${Math.round(1000 / (elapsed_time + time_to_wait))}`);
+				PreviewCanvas.#fps_frame_counter = 0;
+			}
 		}
 
-		// Log FPS
-		// this.LOG(`FPS: ${Math.round(1000 / (elapsed_time + time_to_wait))}`);
+		if (time_to_wait > 0) {
+			setTimeout(callback, time_to_wait);
+		} else {
+			callback();
+		}
 	}
 }
