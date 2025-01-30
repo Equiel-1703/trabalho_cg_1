@@ -2,6 +2,8 @@ import DoLog from "../Logging/DoLog.js";
 
 import Model3D from "../3DStuff/Model3D.js";
 
+import PropertiesEditor from "./PropertiesEditor.js";
+
 export default class ModelSelector extends DoLog {
 	/** @type {string} */
 	#selected_model_name = null;
@@ -16,9 +18,14 @@ export default class ModelSelector extends DoLog {
 	/** @type {HTMLUListElement} */
 	#model_selector_ul = null;
 
-	constructor(log) {
+	/** @type {PropertiesEditor} */
+	#properties_editor = null;
+
+	constructor(log, properties_editor) {
 		super(log, 'ModelSelector> ');
+
 		this.#model_selector_ul = document.getElementById('model_selector');
+		this.#properties_editor = properties_editor;
 	}
 
 	/**
@@ -67,6 +74,10 @@ export default class ModelSelector extends DoLog {
 			// Select the new model
 			this.#selected_model_name = model_name;
 			e.target.classList.add(li_selected_class);
+
+			// Set the properties editor to reflect the selected model transformations
+			const model = this.#models_mapping[model_name];
+			this.#properties_editor.loadPropertiesDictionary(model.getTransformationDict());
 		});
 
 		this.#model_selector_ul.appendChild(li);

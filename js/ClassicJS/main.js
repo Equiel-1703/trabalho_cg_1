@@ -151,8 +151,8 @@ async function main() {
     model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
 
     // Test code ----------------------------------------------------------------------------------------------------------------------
-    model_selector = new ModelSelector(log);
     properties_editor = new PropertiesEditor(log);
+    model_selector = new ModelSelector(log, properties_editor);
 
     // End of test code ----------------------------------------------------------------------------------------------------------------
 
@@ -206,7 +206,7 @@ async function renderCallBack(s_time) {
     for (const model of models_to_render) {
         if (selected_model === model.getModelName()) {
             // If the user is selecting a model, we need to update its transformation matrix
-            model.setTransformationMatrix(properties_editor.readTransformationsProperties());
+            model.setTransformation(properties_editor.readTransformationsProperties());
         }
 
         const objects = model.getRenderableObjects(); // Get renderable objects from model

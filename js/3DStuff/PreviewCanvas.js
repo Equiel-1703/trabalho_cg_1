@@ -30,7 +30,7 @@ export default class PreviewCanvas extends DoLog {
 	static #FPS = 30;
 	static #fps_limit = 1000 / PreviewCanvas.#FPS;
 	static #fps_frame_counter = 0;
-	static #ROTATION_MATRIX = GraphicsMath.createRotationMatrix(GraphicsMath.degToRad(-1), 'y');
+	static #ROTATION_AMOUNT = GraphicsMath.degToRad(-1); // 1 degree per frame
 
 	constructor(canvasID, vs, fs, log) {
 		super(log, canvasID + '> ');
@@ -120,12 +120,12 @@ export default class PreviewCanvas extends DoLog {
 		const enable_m_color_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_material_color');
 		const material_color = this.#gl.getUniformLocation(this.#program, 'u_material_color');
 
-		// Set transformation matrix
-		const model_matrix = this.#model.getTransformationMatrix();
-		const new_t_matrx = GraphicsMath.multiplyMatrices(PreviewCanvas.#ROTATION_MATRIX, model_matrix);
+		// Set transformation of the model
+		const transformation_dictionary = this.#model.getTransformationDict();
+		transformation_dictionary.rotation.y += PreviewCanvas.#ROTATION_AMOUNT;
+		this.#model.setTransformation(transformation_dictionary);
 
-		this.#model.setTransformationMatrix(new_t_matrx);
-		this.#gl.uniformMatrix4fv(transformation_uniform, false, model_matrix);
+		this.#gl.uniformMatrix4fv(transformation_uniform, false, this.#model.getTransformationMatrix());
 
 		// Clearing the canvas
 		this.#wgl_utils.clearCanvas(PreviewCanvas.#clearColor, this.#gl);

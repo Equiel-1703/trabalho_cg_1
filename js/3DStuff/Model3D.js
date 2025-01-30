@@ -11,10 +11,11 @@ import GraphicsMath from './GraphicsMath.js';
  * 
  * @property {string} name - The name of the model. Must be unique.
  * @property {string} model_path - The path to the model file.
+ * @property {Object} transformation_dict - A transformation dictionary with the properties: translation, rotation, and scale.
  * @property {Object3D[]} objects - The objects that make up the model.
  * 
  * @method getTransformationMatrix - Get the transformation matrix of the model.    
- * @method setTransformationMatrix - Set the transformation matrix of the model.
+ * @method setTransformation - Set the transformation matrix of the model.
  * @method getRenderableObjects - Get the renderable objects of the model.
  * @method getModelName - Get the name of the model.
  * @method renameModel - Rename the model.
@@ -26,6 +27,12 @@ import GraphicsMath from './GraphicsMath.js';
 export default class Model3D {
     #name = '';
     #model_path = '';
+
+    #transformation_dict = {
+        translation: { x: 0, y: 0, z: 0 },
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1, y: 1, z: 1 }
+    };
     #transformation_matrix = GraphicsMath.createIdentityMatrix();
 
     constructor(name, model_path, parsed_obj_data, parsed_materials, gl, program) {
@@ -84,13 +91,35 @@ export default class Model3D {
         return this.#transformation_matrix;
     }
 
+    getTransformationDict() {
+        return this.#transformation_dict;
+    }
+
     /**
-     *  Sets the transformation matrix of the model.
+     *  Receives a dictionary to set the transformation matrix of the model.
      * 
-     * @param {Float32Array} matrix - The transformation matrix in column major order.
+     * @param {Object} dictionary - The dictionary with the transformation matrix properties: translation, rotation, and scale.
      */
-    setTransformationMatrix(matrix) {
-        this.#transformation_matrix = matrix;
+    setTransformation(dictionary) {
+        const t = dictionary.translation;
+        const r = dictionary.rotation;
+        const s = dictionary.scale;
+
+        const t_m = GraphicsMath.createTranslationMatrix(t.x, t.y, t.z);
+
+        const r_x_m = GraphicsMath.createRotationMatrix(r.x, 'x');
+        const r_y_m = GraphicsMath.createRotationMatrix(r.y, 'y');
+        const r_z_m = GraphicsMath.createRotationMatrix(r.z, 'z');
+        const r_xy_m = GraphicsMath.multiplyMatrices(r_x_m, r_y_m);
+        const r_xyz_m = GraphicsMath.multiplyMatrices(r_xy_m, r_z_m);
+
+        const s_m = GraphicsMath.createScaleMatrix(s.x, s.y, s.z);
+
+        const s_r = GraphicsMath.multiplyMatrices(r_xyz_m, s_m);
+        const s_r_p = GraphicsMath.multiplyMatrices(t_m, s_r);
+
+        this.#transformation_matrix = s_r_p;
+        this.#transformation_dict = dictionary;
     }
 
     /**
@@ -139,7 +168,7 @@ export default class Model3D {
         const new_model = new Model3D(this.#name, this.#model_path, null, null, null, null);
 
         // Copy the transformation matrix
-        new_model.setTransformationMatrix(new Float32Array(this.#transformation_matrix));
+        new_model.setTransformation(new Float32Array(this.#transformation_matrix));
         // Set new model's objects to the same objects as the current model
         new_model.objects = this.getRenderableObjects();
 
