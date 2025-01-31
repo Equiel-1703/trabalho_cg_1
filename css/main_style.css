@@ -142,6 +142,8 @@ label {
 
     flex-direction: row;
     gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
 }
 
 #fps_counter {

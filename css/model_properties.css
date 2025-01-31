@@ -15,9 +15,11 @@
 #model_properties>p {
 	margin-bottom: 1rem;
 }
+
 #model_properties>p:not(:first-child) {
 	margin-top: 2rem;
 }
+
 #model_properties>p:first-child {
 	margin-top: 0;
 }
@@ -40,7 +42,7 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-end;
 
 	gap: 0.5rem;
 
@@ -74,24 +76,27 @@
 
 	background-color: transparent;
 }
+
 .prop_list>li>input[type="color"]::-webkit-color-swatch {
 	border: none;
 }
+
 .prop_list>li>input[type="color"]::-webkit-color-swatch-wrapper {
 	padding: 0;
 }
+
 #texture_color_opacity {
 	height: var(--model-properties-icons-size);
 	width: 3rem;
 
 	text-align: center;
-	
+
 	color: white;
 	background-color: var(--app-bg-color);
-	
+
 	border: 1px solid white;
 	border-radius: var(--model-properties-border-radius);
-	
+
 	padding: 0;
 	padding-block: 0;
 	padding-inline: 0;
@@ -102,6 +107,23 @@
 
 .prop_list>li>input[type="file"] {
 	display: none;
+}
+
+.prop_list input[type="number"] {
+	-moz-appearance: textfield;
+	appearance: textfield;
+
+	text-align: center;
+
+	border-radius: var(--model-properties-border-radius);
+}
+
+.prop_list input[type="number"]::-webkit-inner-spin-button {
+	display: none;
+}
+
+#texture_img_label {
+	text-align: center;
 }
 
 #texture_img {

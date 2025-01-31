@@ -136,9 +136,11 @@
                                 step="0.1" min="0" max="1" />
                         </li>
                         <li>
-                            <label for="texture_image">IMAGE:</label>
-                            <input type="file" id="texture_image" name="texture_image" />
-                            <img src="./imgs/img_icon.png" alt="Image Icon" id="texture_img" />
+                            <label id="texture_img_label" for="texture_image">
+                                IMAGE:
+                                <img src="./imgs/img_icon.png" alt="Image Icon" id="texture_img" />
+                            </label>
+                            <input type="file" accept="image/jpeg, image/png" id="texture_image" name="texture_image" />
                         </li>
                     </ul>
                 </div>
