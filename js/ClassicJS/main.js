@@ -207,6 +207,8 @@ async function renderCallBack(s_time) {
         if (selected_model === model.getModelName()) {
             // If the user is selecting a model, we need to update its transformation matrix
             model.setTransformation(properties_editor.readTransformationsProperties());
+            console.log('Reading texture properties...');
+            console.log(properties_editor.readTextureProperties());
         }
 
         const objects = model.getRenderableObjects(); // Get renderable objects from model

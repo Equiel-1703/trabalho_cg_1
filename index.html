@@ -136,11 +136,13 @@
                                 step="0.1" min="0" max="1" />
                         </li>
                         <li>
-                            <label id="texture_img_label" for="texture_image">
+                            <label id="texture_img_label" for="texture_image_input">
                                 IMAGE:
-                                <img src="./imgs/img_icon.png" alt="Image Icon" id="texture_img" />
+                                <img src="./imgs/img_icon.png" alt="Image Icon" id="texture_img_element" />
                             </label>
-                            <input type="file" accept="image/jpeg, image/png" id="texture_image" name="texture_image" />
+                            <button id="texture_clear_btn">X</button>
+                            <input type="file" accept="image/jpeg, image/png" id="texture_image_input"
+                                name="texture_image" />
                         </li>
                     </ul>
                 </div>

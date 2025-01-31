@@ -126,7 +126,7 @@
 	text-align: center;
 }
 
-#texture_img {
+#texture_img_element {
 	width: var(--model-properties-icons-size);
 	height: var(--model-properties-icons-size);
 
@@ -134,4 +134,32 @@
 	margin: 0;
 
 	border-radius: var(--model-properties-border-radius);
+}
+
+#texture_clear_btn {
+	width: 1rem;
+	height: 1rem;
+
+	padding: 0;
+
+	text-align: center;
+	font-size: 0.6rem;
+	font-family: "Source Code Pro", serif;
+	font-weight: 500;
+
+	background-color: var(--app-bg-color);
+	color: white;
+
+	border: 1px solid white;
+	border-radius: 50%;
+}
+
+#texture_clear_btn:hover {
+	background-color: white;
+	color: var(--app-bg-color);
+}
+
+#texture_clear_btn:active {
+	background-color: rgb(40 19 50);
+	color: white;
 }
