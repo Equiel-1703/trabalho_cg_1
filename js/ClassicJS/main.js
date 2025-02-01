@@ -161,7 +161,7 @@ async function main() {
     model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
     properties_editor = new PropertiesEditor(log);
     model_selector = new ModelSelector(log, properties_editor, gl);
-    const saver_loader = new SceneLoaderSaver(model_selector.get3DModelsList());
+    const saver_loader = new SceneLoaderSaver(log, model_selector, gl, program);
 
     // ------------- Rendering setup -------------
     gl.enable(gl.DEPTH_TEST); // Enable depth test

@@ -150,6 +150,21 @@ export default class ModelSelector extends DoLog {
 		return Object.values(this.#models_mapping);
 	}
 
+
+	/**
+	 * Clear the list of all selectable models. It will delete ALL the models in the process.
+	 */
+	clear3DModelsList() {
+		for (const model_name in this.#models_mapping) {
+			const model = this.#models_mapping[model_name];
+			model.deleteModel(this.#gl);
+		}
+
+		this.#models_mapping = {};
+		this.#selected_model_name = null;
+		this.#model_selector_ul.innerHTML = '';
+	}
+
 	/**
 	 * Returns the selected model name.
 	 * 

@@ -103,7 +103,8 @@ main {
     display: none;
 }
 
-#load_save_container label {
+#load_save_container label,
+#load_save_container button {
     padding: 0.5rem;
 
     background-color: var(--app-dark-color);
@@ -119,11 +120,13 @@ main {
     font-size: 0.8rem;
 }
 
-#load_save_container label:hover {
+#load_save_container label:hover,
+#load_save_container button:hover {
     background-color: var(--app-active-color);
 }
 
-#load_save_container label:active {
+#load_save_container label:active,
+#load_save_container button:active {
     background-color: var(--app-bg-color);
 }
 
