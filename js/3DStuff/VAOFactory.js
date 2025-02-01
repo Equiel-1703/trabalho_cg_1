@@ -14,7 +14,17 @@ export default class VAOFactory {
     static INDEX_BUFFER_KEY = 'index_buffer';
 
     /**
-     * Creates a VAO from the given configuration.
+     * Creates a VAO from the given VAO configuration object. An VAO configuration object is an object in
+     * which each key is the name of an attribute in the shader program and the value is an object containing the configuration for
+     * that attribute. For example:
+     * 'a_position': {
+     *    data: geometry_data.position,
+     *    components_per_attr: 3,
+     *    data_type: gl.FLOAT,
+     *    normalize: false,
+     *    stride: 0,
+     *    offset: 0
+     * }
      * 
      * @param {Object} config - The configuration of the VAO.
      * @param {WebGL2RenderingContext} gl - The WebGL2 context.
@@ -53,11 +63,16 @@ export default class VAOFactory {
      */
     static #configureVertexAttribute(gl, program, attribute_name, attribute_config) {
         console.log('Configuring attribute: ' + attribute_name);
-        
+
         // Get the attribute location
         const attrib_location = gl.getAttribLocation(program, attribute_name);
 
         console.log('Attribute location: ' + attrib_location);
+
+        if (attrib_location === -1) {
+            console.warn('Attribute not found: ' + attribute_name) + '. Skipping configuration.';
+            return;
+        }
 
         // Create buffer for the attribute
         const buffer = gl.createBuffer();

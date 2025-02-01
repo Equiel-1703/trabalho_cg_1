@@ -7,7 +7,6 @@ export default class PropertiesEditor extends DoLog {
 	static #position_prop = 'prop_position';
 	static #rotation_prop = 'prop_rotation';
 	static #scale_prop = 'prop_scale';
-	static #texture_prop = 'prop_texture';
 
 	static #texture_color_input_id = 'texture_color';
 	static #texture_color_opacity_input_id = 'texture_color_opacity';
@@ -15,7 +14,11 @@ export default class PropertiesEditor extends DoLog {
 	static #texture_image_input = 'texture_image_input';
 	static #img_element_id = 'texture_img_element';
 	static #texture_clear_btn_id = 'texture_clear_btn';
-	static #default_img_src = 'imgs/img_icon.png';
+	static #default_img_name = 'img_icon.png';
+	static #default_img_src = 'imgs/' + PropertiesEditor.#default_img_name;
+
+	#last_texture_image_src = null;
+	#clear_texture = false;
 
 	constructor(log) {
 		super(log, 'PropertiesEditor> ');
@@ -33,12 +36,10 @@ export default class PropertiesEditor extends DoLog {
 			if (input.files.length === 0) {
 				return;
 			} else {
+				console.log('New file selected: ');
+				console.log(input.files[0]);
 				const file = input.files[0];
 
-				// Free the previous image (if any)
-				if (img_icon.src !== PropertiesEditor.#default_img_src) {
-					URL.revokeObjectURL(img_icon.src);
-				}
 				// Load the new image 
 				const img_content = URL.createObjectURL(file);
 
@@ -48,6 +49,7 @@ export default class PropertiesEditor extends DoLog {
 
 		const clear_btn_click = () => {
 			img_icon.src = PropertiesEditor.#default_img_src;
+			this.#clear_texture = true;
 		};
 
 		img_input.addEventListener('change', img_input_change);
@@ -59,7 +61,7 @@ export default class PropertiesEditor extends DoLog {
 	 * 
 	 * @param {Object} transformation_dict - The transformation dictionary containing translation, rotation and scale.
 	 */
-	loadPropertiesDictionary(properties_dict) {
+	loadTransformationsProperties(properties_dict) {
 		this.#loadPosition(properties_dict.translation);
 		this.#loadRotation(properties_dict.rotation);
 		this.#loadScale(properties_dict.scale);
@@ -79,10 +81,43 @@ export default class PropertiesEditor extends DoLog {
 	}
 
 	/**
+	 * Load the texture properties into the properties panel.
+	 * 
+	 * @param {Object} texture_properties - The texture properties to load into the panel. It contains the following properties:
+	 * 	- {Image} image - An HTML image element containing the texture image.
+	 * 	- {Color} color - The color the user choose in RGBA format.
+	 */
+	loadTextureProperties(texture_properties) {
+		const img_icon = document.getElementById(PropertiesEditor.#img_element_id);
+
+		if (texture_properties.image === null) {
+			this.#last_texture_image_src = null;
+			img_icon.src = PropertiesEditor.#default_img_src;
+		} else {
+			this.#last_texture_image_src = texture_properties.image.src;
+			img_icon.src = texture_properties.image.src;
+		}
+
+		const color_input = document.getElementById(PropertiesEditor.#texture_color_input_id);
+		const color_opacity_input = document.getElementById(PropertiesEditor.#texture_color_opacity_input_id);
+
+		const color = texture_properties.color;
+
+		const r = Math.round(color.r * 255).toString(16).padStart(2, '0');
+		const g = Math.round(color.g * 255).toString(16).padStart(2, '0');
+		const b = Math.round(color.b * 255).toString(16).padStart(2, '0');
+
+		color_input.value = `#${r}${g}${b}`;
+		color_opacity_input.value = color.a;
+	}
+
+	/**
 	 * Read the texture properties from the properties panel.
 	 * 
 	 * @returns {Object} - A texture dictionary with the properties read from the panel, as follows:
+	 * 	- {boolean} set_texture - A flag indicating whether the user wants to set a new texture
 	 * 	- {Image} image - An HTML image element containing the texture image.
+	 * 	- {boolean} clear - A flag indicating whether the user wants to clear the texture.
 	 * 	- {Color} color - The color the user choose in RGBA format.
 	 */
 	readTextureProperties() {
@@ -101,11 +136,29 @@ export default class PropertiesEditor extends DoLog {
 
 		// Reading image
 		const img_element = document.getElementById(PropertiesEditor.#img_element_id);
+		let set_texture_flag = false;
+		let img_return = null;
 
-		let img_return = (img_element.src.endsWith(PropertiesEditor.#default_img_src)) ? null : img_element;
+		if (!img_element.src.endsWith(PropertiesEditor.#default_img_src) && !this.#clear_texture && img_element.src !== this.#last_texture_image_src) {
+			img_return = new Image();
+			img_return.src = img_element.src;
 
-		// Return the image and color
-		return { image: img_return, color: color_rgba };
+			this.#last_texture_image_src = img_element.src;
+
+			set_texture_flag = true;
+		}
+
+		// Return the image, color and clear flag
+		const properties = {
+			set_texture: set_texture_flag,
+			image: img_return,
+			clear: this.#clear_texture,
+			color: color_rgba
+		};
+
+		this.#clear_texture = false;
+
+		return properties;
 	}
 
 	#readPosition() {

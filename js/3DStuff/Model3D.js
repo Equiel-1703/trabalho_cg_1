@@ -1,5 +1,6 @@
 import Object3D from './Object3D.js';
 import GraphicsMath from './GraphicsMath.js';
+import { Color } from './WebGLUtils.js';
 
 /**
  * This class represents a Model3D.
@@ -11,23 +12,40 @@ import GraphicsMath from './GraphicsMath.js';
  * 
  * @property {string} name - The name of the model. Must be unique.
  * @property {string} model_path - The path to the model file.
+ * @property {Image} model_texture_image - The texture image of the model.
+ * @property {Color} global_color - The global color of the model.
+ * @property {WebGL2Texture} model_texture - The WebGL2 texture of the model.
  * @property {Object} transformation_dict - A transformation dictionary with the properties: translation, rotation, and scale.
  * @property {Object3D[]} objects - The objects that make up the model.
  * 
+ * @method getTransformationDict - Get the transformation dictionary of the model.
  * @method getTransformationMatrix - Get the transformation matrix of the model.    
  * @method setTransformation - Set the transformation matrix of the model.
+ * @method getTextureProperties - Get the texture settings of the model.
  * @method getRenderableObjects - Get the renderable objects of the model.
  * @method getModelName - Get the name of the model.
- * @method renameModel - Rename the model.
  * @method getModelPath - Get the path to the model file.
+ * @method setTexture - Set the texture image of the model.
+ * @method clearTexture - Clear the texture of the model.
+ * @method getTextureImage - Get the texture image of the model.
+ * @method hasTexture - Check if the model has a texture.
+ * @method setGlobalColor - Set the global color of the model.
+ * @method getGlobalColor - Get the global color of the model.
+ * @method renameModel - Rename the model.
  * @method deleteModel - This method iterates over all objects in the model and call deleteObject on each one.
- * @method renameModel - Renames the model.
  * @method duplicateModel - This method creates a new model with the same objects and transformation matrix as the current model.
  */
 export default class Model3D {
     #name = '';
     #model_path = '';
+    /** @type {Image} */
+    #model_texture_image = null;
+    /** @type {Color} */
+    #global_color = new Color(0, 0, 0, 0); // Default color is transparent black
+    /** @type {WebGL2Texture} */
+    #model_texture = null;
 
+    /**  @type {Object} */
     #transformation_dict = {
         translation: { x: 0, y: 0, z: 0 },
         rotation: { x: 0, y: 0, z: 0 },
@@ -96,7 +114,7 @@ export default class Model3D {
     }
 
     /**
-     *  Receives a dictionary to set the transformation matrix of the model.
+     * Receives a dictionary to set the transformation matrix of the model.
      * 
      * @param {Object} dictionary - The dictionary with the transformation matrix properties: translation, rotation, and scale.
      */
@@ -120,6 +138,112 @@ export default class Model3D {
 
         this.#transformation_matrix = s_r_p;
         this.#transformation_dict = dictionary;
+    }
+
+    /**
+     * Get the texture settings of the model.
+     * 
+     * @returns {Object} The texture settings of the model.
+     */
+    getTextureProperties() {
+        return { image: this.#model_texture_image, color: this.#global_color };
+    }
+
+    /**
+     * Set the texture image of the model.
+     * 
+     * @param {HTMLImageElement} texture_img - The texture image.
+     * @param {WebGL2RenderingContext} gl - The WebGL2 context.
+     */
+    setTexture(texture_img, gl) {
+        // Revoke the object URL of the previous texture if it had one
+        if (this.#model_texture_image !== null) {
+            URL.revokeObjectURL(this.#model_texture_image.src);
+
+            gl.deleteTexture(this.#model_texture);
+        }
+
+        this.#model_texture_image = texture_img;
+
+        // Create a new texture
+        this.#model_texture = gl.createTexture();
+
+        // Bind the texture to the active texture unit at bind point TEXTURE_2D
+        gl.bindTexture(gl.TEXTURE_2D, this.#model_texture);
+
+        // Set the parameters so we can render any size image.
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        // Upload the image into the texture only after it has loaded
+        this.#model_texture_image.onload = () => {
+            // Upload the image into the texture.
+            var mipLevel = 0;               // the largest mip
+            var internalFormat = gl.RGBA;   // format we want in the texture
+            var srcFormat = gl.RGBA;        // format of data we are supplying
+            var srcType = gl.UNSIGNED_BYTE  // type of data we are supplying
+            gl.texImage2D(gl.TEXTURE_2D,
+                mipLevel,
+                internalFormat,
+                srcFormat,
+                srcType,
+                this.#model_texture_image);
+        };
+    }
+
+    /**
+     * Clear the texture of the model.
+     * 
+     * @param {WebGL2RenderingContext} gl - The WebGL2 context.
+     */
+    clearTexture(gl) {
+        // Revoke the object URL of the previous texture if it had one
+        if (this.#model_texture_image !== null) {
+            URL.revokeObjectURL(this.#model_texture_image.src);
+
+            gl.deleteTexture(this.#model_texture);
+        }
+
+        this.#model_texture_image = null;
+        this.#model_texture = null;
+    }
+
+    /**
+     * Get the texture image of the model.
+     * 
+     * @returns {HTMLImageElement} The texture image.
+     */
+    getTextureImage() {
+        return this.#model_texture_image
+    }
+
+    /**
+     * Check if the model has a texture.
+     * 
+     * @returns {boolean} True if the model has a texture, false otherwise.
+     */
+    hasTexture() {
+        return this.#model_texture !== null;
+    }
+
+    /**
+     * Set the global color of the model.
+     * 
+     * @param {Color} color - The color.
+     */
+    setGlobalColor(color) {
+        this.#global_color = color;
+    }
+
+    /**
+     * Get the global color of the model.
+     * 
+     * @returns {Color} The color.
+     */
+    getGlobalColor() {
+        return this.#global_color;
     }
 
     /**
@@ -167,8 +291,6 @@ export default class Model3D {
     duplicateModel() {
         const new_model = new Model3D(this.#name, this.#model_path, null, null, null, null);
 
-        // Copy the transformation matrix
-        new_model.setTransformation(new Float32Array(this.#transformation_matrix));
         // Set new model's objects to the same objects as the current model
         new_model.objects = this.getRenderableObjects();
 

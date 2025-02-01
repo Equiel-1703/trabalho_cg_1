@@ -73,7 +73,12 @@ export default class PreviewCanvas extends DoLog {
 		const projection_matrix = GraphicsMath.createProjectionMatrix(fov, aspect_ratio, near, far);
 
 		const projection_uniform = this.#gl.getUniformLocation(program, 'u_perspective_projection');
+		const enable_texture_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_texture');
+
+		// Set projection matrix (all preview canvases have the same projection matrix)
 		this.#gl.uniformMatrix4fv(projection_uniform, false, projection_matrix);
+		// Disable texture (preview models don't have textures)
+		this.#gl.uniform1i(enable_texture_uniform, false);
 
 		// Enable depth test and culling
 		this.#gl.enable(this.#gl.DEPTH_TEST);
@@ -118,7 +123,7 @@ export default class PreviewCanvas extends DoLog {
 		const transformation_uniform = this.#gl.getUniformLocation(this.#program, 'u_model_matrix');
 		const enable_v_color_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_vertex_color');
 		const enable_m_color_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_material_color');
-		const material_color = this.#gl.getUniformLocation(this.#program, 'u_material_color');
+		const material_color_uniform = this.#gl.getUniformLocation(this.#program, 'u_material_color');
 
 		// Set transformation of the model
 		const transformation_dictionary = this.#model.getTransformationDict();
@@ -138,21 +143,20 @@ export default class PreviewCanvas extends DoLog {
 			const vao = geometry.getVAO();
 			const material = geometry.getMaterial();
 
-			if (material) {
-				// Enable material color
-				this.#gl.uniform1f(enable_m_color_uniform, 1.0);
+			// Enable material color, if it exists
+			if ('diffuse' in material) {
 				// Disable vertex color
-				this.#gl.uniform1f(enable_v_color_uniform, 0.0);
+				this.#gl.uniform1i(enable_v_color_uniform, false);
+				// Enable material color
+				this.#gl.uniform1i(enable_m_color_uniform, true);
 
 				// Set material color
-				this.#gl.uniform3fv(material_color, new Float32Array(material.diffuse));
+				this.#gl.uniform3fv(material_color_uniform, new Float32Array(material.diffuse));
 			} else {
 				// Disable material color
-				this.#gl.uniform1f(enable_m_color_uniform, 0.0);
-				// Enable vertex color
-				this.#gl.uniform1f(enable_v_color_uniform, 1.0);
-
-				this.#gl.uniform3fv(material_color, new Float32Array([1.0, 1.0, 1.0]));
+				this.#gl.uniform1i(enable_m_color_uniform, false);
+				// Enable vertex color (it has random colors by default)
+				this.#gl.uniform1i(enable_v_color_uniform, true);
 			}
 
 			this.#gl.bindVertexArray(vao);

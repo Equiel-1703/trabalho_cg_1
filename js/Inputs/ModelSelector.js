@@ -29,6 +29,36 @@ export default class ModelSelector extends DoLog {
 	}
 
 	/**
+	 * Event handler for when a model is selected from the list.
+	 * 
+	 * @param {MouseEvent} e - The event object.
+	 */
+	#modelSelected(e) {
+		const li_class = 'model_li';
+		const li_selected_class = 'model_selected';
+
+		const model_name = e.target.textContent;
+
+		this.LOG('Selected model: ' + model_name);
+
+		// Unselect the previous model
+		if (this.#selected_model_name !== null) {
+			const prev_li = document.querySelector(`.${li_class}.${li_selected_class}`);
+			prev_li.classList.remove(li_selected_class);
+		}
+
+		e.target.classList.add(li_selected_class);
+
+		// Set the properties editor to reflect the selected model transformations and texture properties
+		const model = this.#models_mapping[model_name];
+		this.#properties_editor.loadTransformationsProperties(model.getTransformationDict());
+		this.#properties_editor.loadTextureProperties(model.getTextureProperties());
+
+		// Select the new model
+		this.#selected_model_name = model_name;
+	}
+
+	/**
 	 * Add a model to the list of selectable models.
 	 * 
 	 * @param {Model3D} model_element - The model element to add to the list.
@@ -55,30 +85,12 @@ export default class ModelSelector extends DoLog {
 		// Create the list item <li>
 		const li = document.createElement('li');
 		const li_class = 'model_li';
-		const li_selected_class = 'model_selected';
 
 		li.textContent = model_name;
 		li.classList.add(li_class);
 
-		li.addEventListener('click', (e) => {
-			const model_name = e.target.textContent;
-
-			this.LOG('Selected model: ' + model_name);
-
-			// Unselect the previous model
-			if (this.#selected_model_name !== null) {
-				const prev_li = document.querySelector(`.${li_class}.${li_selected_class}`);
-				prev_li.classList.remove(li_selected_class);
-			}
-
-			// Select the new model
-			this.#selected_model_name = model_name;
-			e.target.classList.add(li_selected_class);
-
-			// Set the properties editor to reflect the selected model transformations
-			const model = this.#models_mapping[model_name];
-			this.#properties_editor.loadPropertiesDictionary(model.getTransformationDict());
-		});
+		// Add behavior to the list item when clicked (model selected)
+		li.addEventListener('click', this.#modelSelected.bind(this));
 
 		this.#model_selector_ul.appendChild(li);
 	}

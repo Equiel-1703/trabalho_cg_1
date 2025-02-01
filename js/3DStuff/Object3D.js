@@ -94,7 +94,9 @@ export default class Object3D {
     }
 
     /**
-     * Creates a VAO (Vertex Array Object) configuration for the given geometry data.
+     * Creates a VAO (Vertex Array Object) configuration object for the given geometry data. An VAO configuration object is an object in
+     * which each key is the name of an attribute in the shader program and the value is an object containing the configuration for
+     * that attribute.
      *
      * @param {Object} geometry_data - The geometry data containing position, texcoord, normal, and color attributes.
      * @param {WebGLRenderingContext} gl - The WebGL rendering context.
@@ -173,7 +175,7 @@ export default class Object3D {
         const color_expected_length = position.length / 3 * 4; // Calculate the expected length of the color array
 
         if (!('color' in geometry_data) || geometry_data.color.length === 0) {
-            // If not, create an array filled with random colors
+            // If not, create an array filled with random colors (just to have some color)
             color = new Float32Array(color_expected_length);
 
             for (let i = 0; i < color_expected_length / 4; i++) {

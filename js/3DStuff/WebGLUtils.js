@@ -7,6 +7,10 @@ export class Color {
         this.b = b;
         this.a = a;
     }
+
+    getRGBA() {
+        return new Float32Array([this.r, this.g, this.b, this.a]);
+    }
 }
 
 export class WebGLUtils extends DoLog {

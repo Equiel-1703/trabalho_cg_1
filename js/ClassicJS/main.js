@@ -60,6 +60,16 @@ async function loadObjsList() {
     return obj_list;
 }
 
+function setupTextureUnit(gl, program, texture_unit_num) {
+    // Get uniform location
+    const texture_uniform = gl.getUniformLocation(program, 'u_texture');
+    gl.uniform1i(texture_uniform, texture_unit_num);
+
+    // Activate texture unit 0
+    gl.activeTexture(gl.TEXTURE0 + texture_unit_num);
+}
+
+
 // ----------- GLOBAL PARAMETERS --------------
 const FPS = 60;
 const FPS_LIMIT = 1000 / FPS;
@@ -145,17 +155,11 @@ async function main() {
         }
     });
 
-
     // Setup model creator menu
     const objs_list = await loadObjsList();
     model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
-
-    // Test code ----------------------------------------------------------------------------------------------------------------------
     properties_editor = new PropertiesEditor(log);
     model_selector = new ModelSelector(log, properties_editor);
-
-    // End of test code ----------------------------------------------------------------------------------------------------------------
-
 
     // ------------- Rendering setup -------------
     gl.enable(gl.DEPTH_TEST); // Enable depth test
@@ -163,6 +167,9 @@ async function main() {
 
     // Configure face culling
     gl.cullFace(gl.FRONT);
+
+    // Setup texture unit
+    setupTextureUnit(gl, program, 0);
 
     requestAnimationFrame(renderCallBack);
 }
@@ -189,9 +196,12 @@ async function renderCallBack(s_time) {
     // Getting uniform locations
     const camera_uniform = gl.getUniformLocation(program, 'u_camera_matrix');
     const transformation_uniform = gl.getUniformLocation(program, 'u_model_matrix');
+    const material_color_uniform = gl.getUniformLocation(program, 'u_material_color');
+    const global_color_uniform = gl.getUniformLocation(program, 'u_global_color');
+
     const enable_v_color_uniform = gl.getUniformLocation(program, 'u_enable_vertex_color');
     const enable_m_color_uniform = gl.getUniformLocation(program, 'u_enable_material_color');
-    const material_color = gl.getUniformLocation(program, 'u_material_color');
+    const enable_texture_uniform = gl.getUniformLocation(program, 'u_enable_texture');
 
     // Set camera matrix (it will be the same for all objects to render, so we can set it here)
     const camera_matrix = camera.getCameraMatrix();
@@ -207,34 +217,61 @@ async function renderCallBack(s_time) {
         if (selected_model === model.getModelName()) {
             // If the user is selecting a model, we need to update its transformation matrix
             model.setTransformation(properties_editor.readTransformationsProperties());
-            console.log('Reading texture properties...');
-            console.log(properties_editor.readTextureProperties());
-        }
 
-        const objects = model.getRenderableObjects(); // Get renderable objects from model
+            // Read texture properties panel
+            const texture_properties = properties_editor.readTextureProperties();
+
+            if (texture_properties.set_texture) {
+                // Set texture
+                model.setTexture(texture_properties.image, gl);
+
+            } else if (texture_properties.clear) {
+                // Clear texture
+                model.clearTexture(gl);
+            }
+
+            // Set global color for model
+            model.setGlobalColor(texture_properties.color);
+        }
 
         // Set transformation matrix (since it's the same for all objects, we can set it here)
         gl.uniformMatrix4fv(transformation_uniform, false, model.getTransformationMatrix());
+        // Set global color
+        gl.uniform4fv(global_color_uniform, model.getGlobalColor().getRGBA());
+        // Set texture (if any)
+        if (model.hasTexture()) {
+            gl.uniform1i(enable_texture_uniform, true);
+        } else {
+            gl.uniform1i(enable_texture_uniform, false);
+        }
+
+        const objects = model.getRenderableObjects(); // Get renderable objects from model
 
         for (const obj of objects) {
             // Set object material settings
             const material = obj.getMaterial();
 
-            if (material) {
-                // Enable material color
-                gl.uniform1f(enable_m_color_uniform, 1.0);
-                // Disable vertex color
-                gl.uniform1f(enable_v_color_uniform, 0.0);
+            // Enable material color, if the model has no texture
+            if (!model.hasTexture()) {
+                if ('diffuse' in material) {
+                    // Disable vertex color
+                    gl.uniform1i(enable_v_color_uniform, false);
+                    // Enable material color
+                    gl.uniform1i(enable_m_color_uniform, true);
 
-                // Set material color
-                gl.uniform3fv(material_color, new Float32Array(material.diffuse));
+                    // Set material color
+                    gl.uniform3fv(material_color_uniform, new Float32Array(material.diffuse));
+                } else {
+                    // Disable material color
+                    gl.uniform1i(enable_m_color_uniform, false);
+                    // Enable vertex color (it has random colors by default)
+                    gl.uniform1i(enable_v_color_uniform, true);
+                }
             } else {
                 // Disable material color
-                gl.uniform1f(enable_m_color_uniform, 0.0);
-                // Enable vertex color
-                gl.uniform1f(enable_v_color_uniform, 1.0);
-
-                gl.uniform3fv(material_color, new Float32Array([1.0, 1.0, 1.0]));
+                gl.uniform1i(enable_m_color_uniform, false);
+                // Disable vertex color
+                gl.uniform1i(enable_v_color_uniform, false);
             }
 
             // Set object VAO
