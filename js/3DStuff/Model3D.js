@@ -34,6 +34,7 @@ import { Color } from './WebGLUtils.js';
  * @method renameModel - Rename the model.
  * @method deleteModel - This method iterates over all objects in the model and call deleteObject on each one.
  * @method duplicateModel - This method creates a new model with the same objects and transformation matrix as the current model.
+ * @method getDuplicatesMapping - Get the duplicates mapping.
  */
 export default class Model3D {
     #name = '';
@@ -52,6 +53,8 @@ export default class Model3D {
         scale: { x: 1, y: 1, z: 1 }
     };
     #transformation_matrix = GraphicsMath.createIdentityMatrix();
+
+    static #models_duplicates_mapping = {};
 
     constructor(name, model_path, parsed_obj_data, parsed_materials, gl, program) {
         // Set the name of the model
@@ -265,15 +268,40 @@ export default class Model3D {
 
     renameModel(new_name) {
         this.#name = new_name;
+
+        // Update the static mapping (if the model is or have duplicates)
+        if (this.#model_path in Model3D.#models_duplicates_mapping) {
+            const index = Model3D.#models_duplicates_mapping[this.#model_path].indexOf(this.#name);
+            Model3D.#models_duplicates_mapping[this.#model_path][index] = new_name;
+        }
     }
 
     /**
-     * This method iterates over all objects in the model and call deleteObject on each one.
+     * This method iterates over all objects in the model and call deleteObject on each one, if the object doesn't have any duplicate in use.
      * This should trigger the garbage collector to free up GPU memory. The internal objects array is also emptied.
      * 
      * @param {WebGL2RenderingContext} gl - The WebGL2 context.
      */
     deleteModel(gl) {
+        // Check if the model has duplicates
+        if (this.#model_path in Model3D.#models_duplicates_mapping) {
+            const duplicates = Model3D.#models_duplicates_mapping[this.#model_path];
+
+            // If so, remove the current model from the mapping
+            const index = duplicates.indexOf(this.#name);
+            duplicates.splice(index, 1);
+
+            // Check if after removing the current model from the mapping, we still have duplicates
+            if (duplicates.length > 0) {
+                // If so, return
+                return;
+            } else {
+                // If not, delete the key from the mapping
+                delete Model3D.#models_duplicates_mapping[this.#model_path];
+            }
+        }
+
+        // If the model doesn't have duplicates or we deleted all duplicates, delete the model
         for (let i = 0; i < this.objects.length; i++) {
             this.objects[i].deleteObject(gl);
         }
@@ -286,6 +314,9 @@ export default class Model3D {
      * The transformation matrix of the new model is a copy of the current model's transformation matrix, not a reference.
      * The objects, although, are references to the same objects as the current model. This was done to save memory.
      * 
+     * Each time a Model3D is duplicated, the name of the current model and of the new model is stored in a static mapping.
+     * This is done to prevent deleting the model while there are still references using it's Objects.
+     * 
      * @returns {Model3D} The new model.
      */
     duplicateModel() {
@@ -294,6 +325,21 @@ export default class Model3D {
         // Set new model's objects to the same objects as the current model
         new_model.objects = this.getRenderableObjects();
 
+        // Add entries to the static mapping
+        if (!(this.#model_path in Model3D.#models_duplicates_mapping)) {
+            Model3D.#models_duplicates_mapping[this.#model_path] = [];
+        }
+
+        if (!(Model3D.#models_duplicates_mapping[this.#model_path].includes(this.#name))) {
+            Model3D.#models_duplicates_mapping[new_model.#model_path].push(this.#name);
+        }
+
+        Model3D.#models_duplicates_mapping[this.#model_path].push(new_model.#name);
+
         return new_model;
+    }
+
+    static getDuplicatesMapping() {
+        return Model3D.#models_duplicates_mapping;
     }
 }

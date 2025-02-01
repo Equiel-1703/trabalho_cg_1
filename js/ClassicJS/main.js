@@ -5,6 +5,7 @@ import CameraControls from "../Inputs/CameraControls.js";
 import ModelCreatorMenu from "../Inputs/ModelCreatorMenu.js";
 import ModelSelector from "../Inputs/ModelSelector.js";
 import PropertiesEditor from "../Inputs/PropertiesEditor.js";
+import { SceneLoaderSaver } from "../Inputs/SceneLoaderSaver.js";
 
 import { Color, WebGLUtils } from "../3DStuff/WebGLUtils.js";
 import GraphicsMath from "../3DStuff/GraphicsMath.js";
@@ -159,7 +160,8 @@ async function main() {
     const objs_list = await loadObjsList();
     model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
     properties_editor = new PropertiesEditor(log);
-    model_selector = new ModelSelector(log, properties_editor);
+    model_selector = new ModelSelector(log, properties_editor, gl);
+    const saver_loader = new SceneLoaderSaver(model_selector.get3DModelsList());
 
     // ------------- Rendering setup -------------
     gl.enable(gl.DEPTH_TEST); // Enable depth test

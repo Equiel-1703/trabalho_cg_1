@@ -39,24 +39,29 @@
 	text-align: center;
 }
 
-#model_selector>li {
+.model_li {
 	margin: 0;
-	padding: 0.2rem;
+	padding: 0.2rem 0.5rem;
 
 	width: 100%;
 	height: auto;
 
 	text-align: left;
 
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+
 	box-sizing: border-box;
 }
 
-#model_selector>li:hover {
+.model_li:hover {
 	background-color: var(--app-active-color) !important;
 	box-shadow: inset 0 0 0 1px white;
 }
 
-#model_selector>li:nth-child(odd) {
+.model_li:nth-child(odd) {
 	background-color: var(--list-even-color);
 }
 

@@ -82,7 +82,52 @@ main {
     height: auto;
 }
 
-#app_container {
+#app_container_v {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#load_save_container {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+
+    background-color: var(--app-dark-bg-color);
+}
+
+#load_save_container input {
+    display: none;
+}
+
+#load_save_container label {
+    padding: 0.5rem;
+
+    background-color: var(--app-dark-color);
+    color: white;
+
+    border: none;
+
+    text-align: center;
+
+    font-family: "Source Code Pro", serif;
+    font-weight: 300;
+    font-style: normal;
+    font-size: 0.8rem;
+}
+
+#load_save_container label:hover {
+    background-color: var(--app-active-color);
+}
+
+#load_save_container label:active {
+    background-color: var(--app-bg-color);
+}
+
+#app_container_h {
     user-select: none;
 
     margin: 0;
@@ -94,7 +139,7 @@ main {
     justify-content: center;
 
     width: 100%;
-    height: 450px;
+    height: 100%;
     background-color: var(--app-bg-color);
 
     font-family: "Source Code Pro", serif;
@@ -111,7 +156,7 @@ main {
 
     text-align: center;
 
-    width: 100%;
+    width: 340px;
     height: 100%;
 
     padding: 0;
@@ -137,7 +182,7 @@ main {
     transform: scale(1, -1);
 }
 
-label {
+.model_properties label {
     display: flex;
 
     flex-direction: row;
@@ -164,7 +209,7 @@ label {
 /* Canvas styling */
 canvas {
     margin: 0;
-    border: 1px solid white;
+    border: none;
 }
 
 /* Log styling */

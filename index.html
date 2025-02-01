@@ -25,164 +25,176 @@
     </header>
 
     <main>
-        <div id="app_container">
-            <div id="left_menu" class="menu">
-                <ol id="model_selector">
-                    <p>MODEL SELECTOR</p>
-                </ol>
-                <div id="camera_controls">
+        <div id="app_container_v">
+            <div id="app_container_h">
+                <div id="left_menu" class="menu">
+                    <ol id="model_selector">
+                        <p>MODEL SELECTOR</p>
+                    </ol>
+                    <div id="camera_controls">
 
-                    <div id="controls_bg"></div>
+                        <div id="controls_bg"></div>
 
-                    <div id="rotation_controls" class="controls">
+                        <div id="rotation_controls" class="controls">
 
-                        <p>ROTATION</p>
-                        <div class="thumbstick_container">
-                            <div class="thumbstick">
-                                <span class="thumb_btn_container">
-                                    <div class="thumb_btn" id="thumb_btn_rotation"></div>
-                                </span>
-                                <span class="thumb_bottom"></span>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div id="position_controls" class="controls">
-                        <p>POSITION</p>
-                        <div>
+                            <p>ROTATION</p>
                             <div class="thumbstick_container">
                                 <div class="thumbstick">
                                     <span class="thumb_btn_container">
-                                        <div class="thumb_btn" id="thumb_btn_position"></div>
+                                        <div class="thumb_btn" id="thumb_btn_rotation"></div>
                                     </span>
                                     <span class="thumb_bottom"></span>
                                 </div>
                             </div>
-                            <div class="dpads">
-                                <img src="./imgs/dpad.png" alt="dpad_up" id="dpad_up" class="dpad" draggable="false" />
-                                <img src="./imgs/dpad.png" alt="dpad_down" id="dpad_down" class="dpad"
-                                    draggable="false" />
+
+                        </div>
+
+                        <div id="position_controls" class="controls">
+                            <p>POSITION</p>
+                            <div>
+                                <div class="thumbstick_container">
+                                    <div class="thumbstick">
+                                        <span class="thumb_btn_container">
+                                            <div class="thumb_btn" id="thumb_btn_position"></div>
+                                        </span>
+                                        <span class="thumb_bottom"></span>
+                                    </div>
+                                </div>
+                                <div class="dpads">
+                                    <img src="./imgs/dpad.png" alt="dpad_up" id="dpad_up" class="dpad"
+                                        draggable="false" />
+                                    <img src="./imgs/dpad.png" alt="dpad_down" id="dpad_down" class="dpad"
+                                        draggable="false" />
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <canvas height="450px" width="800px" id="glcanvas">
-                Seu navegador não suporta canvas.
-            </canvas>
-
-            <div id="right_menu" class="menu">
-                <div class="tabs" id="tabs">
-                    <button class="tab_button" id="tab_model_properties" type="button">Model Properties</button>
-                    <button class="tab_button" id="tab_model_creator" type="button">Create Model</button>
-                </div>
-                <div id="model_properties" class="tab_content">
-                    <p>POSITION</p>
-                    <ul id="prop_position" class="prop_list">
-                        <li>
-                            <label for="pos_x">X:</label>
-                            <input type="number" id="pos_x" name="pos_x" class="x" value="0" step="0.1" />
-                        </li>
-                        <li>
-                            <label for="pos_y">Y:</label>
-                            <input type="number" id="pos_y" name="pos_y" class="y" value="0" step="0.1" />
-                        </li>
-                        <li>
-                            <label for="pos_z">Z:</label>
-                            <input type="number" id="pos_z" name="pos_z" class="z" value="0" step="0.1" />
-                        </li>
-                    </ul>
-
-                    <p>ROTATION</p>
-                    <ul id="prop_rotation" class="prop_list">
-                        <li>
-                            <label for="rot_x">X°:</label>
-                            <input type="number" id="rot_x" name="rot_x" class="x" value="0" />
-                        </li>
-                        <li>
-                            <label for="rot_y">Y°:</label>
-                            <input type="number" id="rot_y" name="rot_y" class="y" value="0" />
-                        </li>
-                        <li>
-                            <label for="rot_z">Z°:</label>
-                            <input type="number" id="rot_z" name="rot_z" class="z" value="0" />
-                        </li>
-                    </ul>
-
-                    <p>SCALE</p>
-                    <ul id="prop_scale" class="prop_list">
-                        <li>
-                            <label for="scale_x">X:</label>
-                            <input type="number" id="scale_x" name="scale_x" class="x" value="1" step="0.1" />
-                        </li>
-                        <li>
-                            <label for="scale_y">Y:</label>
-                            <input type="number" id="scale_y" name="scale_y" class="y" value="1" step="0.1" />
-                        </li>
-                        <li>
-                            <label for="scale_z">Z:</label>
-                            <input type="number" id="scale_z" name="scale_z" class="z" value="1" step="0.1" />
-                        </li>
-                    </ul>
-
-                    <p>TEXTURE</p>
-                    <ul id="prop_texture" class="prop_list">
-                        <li>
-                            <label for="texture_color">COLOR:</label>
-                            <input type="color" id="texture_color" name="texture_color" />
-                            <input type="number" id="texture_color_opacity" name="texture_color_opacity" value="0"
-                                step="0.1" min="0" max="1" />
-                        </li>
-                        <li>
-                            <label id="texture_img_label" for="texture_image_input">
-                                IMAGE:
-                                <img src="./imgs/img_icon.png" alt="Image Icon" id="texture_img_element" />
-                            </label>
-                            <button id="texture_clear_btn">X</button>
-                            <input type="file" accept="image/jpeg, image/png" id="texture_image_input"
-                                name="texture_image" />
-                        </li>
-                    </ul>
-                </div>
-                <div id="model_creator" class="tab_content">
-                    <div id="model_creator_container">
-                        <p>SELECT A MODEL</p>
-                        <div id="model_grid">
-                            <span>
-                                <canvas class="model_canvas" id="mc_1" width="140px" height="120px">
-                                    Seu navegador não suporta canvas.
-                                </canvas>
-                            </span>
-
-                            <span>
-                                <canvas class="model_canvas" id="mc_2" width="140px" height="120px">
-                                    Seu navegador não suporta canvas.
-                                </canvas>
-                            </span>
-
-                            <span>
-                                <canvas class="model_canvas" id="mc_3" width="140px" height="120px">
-                                    Seu navegador não suporta canvas.
-                                </canvas>
-                            </span>
-
-                            <span>
-                                <canvas class="model_canvas" id="mc_4" width="140px" height="120px">
-                                    Seu navegador não suporta canvas.
-                                </canvas>
-                            </span>
-                        </div>
-                        <div id="buttons">
-                            <button id="models_back">BACK</button>
-                            <button id="models_next">NEXT</button>
-                        </div>
+                    <div id="load_save_container">
+                        <label for="load_scene_input">
+                            LOAD SCENE
+                            <input type="file" id="load_scene_input" accept="application/json" />
+                        </label>
+                        <label for="save_scene_input">
+                            SAVE SCENE
+                            <input type="file" id="save_scene_input" accept=".json" />
+                        </label>
                     </div>
                 </div>
-                <p id="fps_counter">FPS: </p>
-            </div>
 
+                <canvas height="450px" width="800px" id="glcanvas">
+                    Seu navegador não suporta canvas.
+                </canvas>
+
+                <div id="right_menu" class="menu">
+                    <div class="tabs" id="tabs">
+                        <button class="tab_button" id="tab_model_properties" type="button">Model Properties</button>
+                        <button class="tab_button" id="tab_model_creator" type="button">Create Model</button>
+                    </div>
+                    <div id="model_properties" class="tab_content">
+                        <p>POSITION</p>
+                        <ul id="prop_position" class="prop_list">
+                            <li>
+                                <label for="pos_x">X:</label>
+                                <input type="number" id="pos_x" name="pos_x" class="x" value="0" step="0.1" />
+                            </li>
+                            <li>
+                                <label for="pos_y">Y:</label>
+                                <input type="number" id="pos_y" name="pos_y" class="y" value="0" step="0.1" />
+                            </li>
+                            <li>
+                                <label for="pos_z">Z:</label>
+                                <input type="number" id="pos_z" name="pos_z" class="z" value="0" step="0.1" />
+                            </li>
+                        </ul>
+
+                        <p>ROTATION</p>
+                        <ul id="prop_rotation" class="prop_list">
+                            <li>
+                                <label for="rot_x">X°:</label>
+                                <input type="number" id="rot_x" name="rot_x" class="x" value="0" />
+                            </li>
+                            <li>
+                                <label for="rot_y">Y°:</label>
+                                <input type="number" id="rot_y" name="rot_y" class="y" value="0" />
+                            </li>
+                            <li>
+                                <label for="rot_z">Z°:</label>
+                                <input type="number" id="rot_z" name="rot_z" class="z" value="0" />
+                            </li>
+                        </ul>
+
+                        <p>SCALE</p>
+                        <ul id="prop_scale" class="prop_list">
+                            <li>
+                                <label for="scale_x">X:</label>
+                                <input type="number" id="scale_x" name="scale_x" class="x" value="1" step="0.1" />
+                            </li>
+                            <li>
+                                <label for="scale_y">Y:</label>
+                                <input type="number" id="scale_y" name="scale_y" class="y" value="1" step="0.1" />
+                            </li>
+                            <li>
+                                <label for="scale_z">Z:</label>
+                                <input type="number" id="scale_z" name="scale_z" class="z" value="1" step="0.1" />
+                            </li>
+                        </ul>
+
+                        <p>TEXTURE</p>
+                        <ul id="prop_texture" class="prop_list">
+                            <li>
+                                <label for="texture_color">COLOR:</label>
+                                <input type="color" id="texture_color" name="texture_color" />
+                                <input type="number" id="texture_color_opacity" name="texture_color_opacity" value="0"
+                                    step="0.1" min="0" max="1" />
+                            </li>
+                            <li>
+                                <label id="texture_img_label" for="texture_image_input">
+                                    IMAGE:
+                                    <img src="./imgs/img_icon.png" alt="Image Icon" id="texture_img_element" />
+                                </label>
+                                <button id="texture_clear_btn" class="small_round_btn">X</button>
+                                <input type="file" accept="image/jpeg, image/png" id="texture_image_input"
+                                    name="texture_image" />
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="model_creator" class="tab_content">
+                        <div id="model_creator_container">
+                            <p>SELECT A MODEL</p>
+                            <div id="model_grid">
+                                <span>
+                                    <canvas class="model_canvas" id="mc_1" width="140px" height="120px">
+                                        Seu navegador não suporta canvas.
+                                    </canvas>
+                                </span>
+
+                                <span>
+                                    <canvas class="model_canvas" id="mc_2" width="140px" height="120px">
+                                        Seu navegador não suporta canvas.
+                                    </canvas>
+                                </span>
+
+                                <span>
+                                    <canvas class="model_canvas" id="mc_3" width="140px" height="120px">
+                                        Seu navegador não suporta canvas.
+                                    </canvas>
+                                </span>
+
+                                <span>
+                                    <canvas class="model_canvas" id="mc_4" width="140px" height="120px">
+                                        Seu navegador não suporta canvas.
+                                    </canvas>
+                                </span>
+                            </div>
+                            <div id="buttons">
+                                <button id="models_back">BACK</button>
+                                <button id="models_next">NEXT</button>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="fps_counter">FPS: </p>
+                </div>
+            </div>
         </div>
 
         <div id="log_output">

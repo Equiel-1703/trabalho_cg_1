@@ -21,9 +21,18 @@ export default class ModelSelector extends DoLog {
 	/** @type {PropertiesEditor} */
 	#properties_editor = null;
 
-	constructor(log, properties_editor) {
+	/** @type  {WebGL2RenderingContext} */
+	#gl = null;
+
+	/**
+	 * @param {DoLog} log - The logger object in which this object will log messages.
+	 * @param {PropertiesEditor} properties_editor - The properties editor object where the model properties will be displayed and edited.
+	 * @param {WebGL2RenderingContext} gl - The WebGL2 rendering context where the models are being rendered and selected.
+	 */
+	constructor(log, properties_editor, gl) {
 		super(log, 'ModelSelector> ');
 
+		this.#gl = gl;
 		this.#model_selector_ul = document.getElementById('model_selector');
 		this.#properties_editor = properties_editor;
 	}
@@ -37,7 +46,7 @@ export default class ModelSelector extends DoLog {
 		const li_class = 'model_li';
 		const li_selected_class = 'model_selected';
 
-		const model_name = e.target.textContent;
+		const model_name = e.target.textContent.slice(0, -1); // Remove the 'X' of the delete button
 
 		this.LOG('Selected model: ' + model_name);
 
@@ -57,6 +66,42 @@ export default class ModelSelector extends DoLog {
 		// Select the new model
 		this.#selected_model_name = model_name;
 	}
+
+	/**
+	 * Create the delete button for the model list.
+	 * 
+	 * @returns {HTMLButtonElement} - The delete button.
+	 */
+	#createDeleteButton() {
+		const button = document.createElement('button');
+		button.textContent = 'X';
+		button.classList.add('small_round_btn');
+
+		button.addEventListener('click', this.#deleteModel.bind(this));
+
+		return button;
+	}
+
+	/**
+	 * Event handler for when a model is deleted from the list.
+	 * 
+	 * @param {MouseEvent} e - The event object
+	 */
+	#deleteModel(e) {
+		e.stopPropagation();
+		e.target.parentElement.remove();
+
+		const model_name = e.target.parentElement.textContent.slice(0, -1); // Remove the 'X' of the delete button
+		const model = this.#models_mapping[model_name];
+
+		if (model_name === this.#selected_model_name) {
+			this.#selected_model_name = null;
+		}
+
+		model.deleteModel(this.#gl);
+		delete this.#models_mapping[model_name];
+	}
+
 
 	/**
 	 * Add a model to the list of selectable models.
@@ -86,17 +131,18 @@ export default class ModelSelector extends DoLog {
 		const li = document.createElement('li');
 		const li_class = 'model_li';
 
-		li.textContent = model_name;
 		li.classList.add(li_class);
+		li.textContent = model_name;
 
 		// Add behavior to the list item when clicked (model selected)
 		li.addEventListener('click', this.#modelSelected.bind(this));
 
 		this.#model_selector_ul.appendChild(li);
+		li.appendChild(this.#createDeleteButton());
 	}
 
 	/**
-	 * Returns a list of all the 3D selectable models in the application.
+	 * Returns a list of all the 3D selectable models in the application. This is used for rendering the scene.
 	 * 
 	 * @returns {Model3D[]} - The list of 3D models.
 	 */
