@@ -24,6 +24,18 @@ header {
 }
 
 /* Titles styling */
+@keyframes title-animation {
+    0% {
+        opacity: 0;
+        transform: translateY(-1.5rem);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @keyframes row-animation {
     0% {
         opacity: 0;
@@ -37,9 +49,26 @@ header {
     }
 }
 
-#title-row {
-    animation: row-animation 1s;
-    animation-delay: 250ms;
+@keyframes subtitle-animation {
+    0% {
+        opacity: 0;
+        transform: translateY(-1.5rem);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+div#assignment-title {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+
+    overflow: hidden;
+
+    animation: title-animation 1s;
+    animation-delay: 0.5s;
     animation-fill-mode: both;
 }
 
@@ -49,18 +78,40 @@ h1 {
     font-style: normal;
     font-size: 3rem;
 
-    margin-top: 3rem;
-    margin-bottom: 1rem;
+    margin: 0;
+    padding: 0;
+}
+
+#title-row {
+    animation: row-animation 1s;
+    animation-delay: 500ms;
+    animation-fill-mode: both;
+
+    margin: 0;
+}
+
+div#university-subtitle {
+    margin-top: 1rem;
+    margin-bottom: 0rem;
+
+    overflow: hidden;
 }
 
 h2 {
     font-family: 'Times New Roman', Times, serif;
     font-weight: 600;
+    font-size: 1.5rem;
     letter-spacing: 0.25rem;
 
-    margin-top: 1rem;
-    margin-bottom: 0rem;
+    margin: 0;
+    padding: 0;
+
+    animation: subtitle-animation 1s;
+    animation-delay: 1s;
+    animation-fill-mode: both;
 }
+
+
 
 /********* Main section styling **************/
 :root {
@@ -80,6 +131,20 @@ main {
 
     width: min-content;
     height: auto;
+
+    animation: body-animation 1s;
+    animation-fill-mode: both;
+}
+
+@keyframes app-animation {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+
 }
 
 #app_container_v {
@@ -87,6 +152,12 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
+    opacity: 0;
+
+    animation: app-animation 1s;
+    animation-delay: 1s;
+    animation-fill-mode: both;
 }
 
 #load_save_container {
@@ -144,6 +215,9 @@ main {
     width: 100%;
     height: 100%;
     background-color: var(--app-bg-color);
+    
+    border-radius: 0.5rem;
+    overflow: hidden;
 
     font-family: "Source Code Pro", serif;
     font-weight: 300;
