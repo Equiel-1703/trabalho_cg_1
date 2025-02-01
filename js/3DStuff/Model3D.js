@@ -267,13 +267,16 @@ export default class Model3D {
     }
 
     renameModel(new_name) {
-        this.#name = new_name;
-
         // Update the static mapping (if the model is or have duplicates)
         if (this.#model_path in Model3D.#models_duplicates_mapping) {
+            // Find the model in the duplicates mapping and update it
             const index = Model3D.#models_duplicates_mapping[this.#model_path].indexOf(this.#name);
+            console.log(`Found model in duplicates mapping at index ${index}`);
             Model3D.#models_duplicates_mapping[this.#model_path][index] = new_name;
         }
+
+        // Now we can update the model name
+        this.#name = new_name;
     }
 
     /**
