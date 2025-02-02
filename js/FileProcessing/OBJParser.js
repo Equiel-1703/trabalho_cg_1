@@ -75,9 +75,10 @@ export default class OBJParser {
                 const objIndex = parseInt(objIndexStr);
                 const index = objIndex + (objIndex >= 0 ? 0 : objVertexData[i].length);
                 webglVertexData[i].push(...objVertexData[i][index]);
-                // if this is the position index (index 0) and we parsed
-                // vertex colors then copy the vertex colors to the webgl vertex color data
+
+                // Check if this is the position index (i === 0) and we need to check for vertex colors.
                 if (i === 0 && objColors.length > 1) {
+                    // Add the vertex color to the geometry data.
                     geometry.data.color.push(...objColors[index]);
                 }
             });

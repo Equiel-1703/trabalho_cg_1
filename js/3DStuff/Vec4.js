@@ -72,6 +72,19 @@ export default class Vec4 {
         return result;
     }
 
+    subtract(B) {
+        let result = Vec4.createZeroPoint();
+
+        result.x = this.x - B.x;
+        result.y = this.y - B.y;
+        result.z = this.z - B.z;
+
+        // w is not subtracted, we will keep the w value of this vector
+        result.w = this.w;
+
+        return result;
+    }
+
     /**
      * Multiplies this vector by a scalar value.
      * 
@@ -113,7 +126,7 @@ export default class Vec4 {
             result.y = this.y / length;
             result.z = this.z / length;
         }
-        
+
         result.w = 0; // Normalized vector is a vector, so w is 0}
 
         return result;
@@ -141,5 +154,9 @@ export default class Vec4 {
         result.w = this.w; // We can apply the transformation matrix to a point, so w remains the same
 
         return result;
+    }
+
+    toArray() {
+        return [this.x, this.y, this.z, this.w];
     }
 }

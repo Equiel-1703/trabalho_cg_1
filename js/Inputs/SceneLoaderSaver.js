@@ -6,6 +6,7 @@ import ModelSelector from "./ModelSelector.js";
 import { Color } from "../3DStuff/WebGLUtils.js";
 
 export class Scene {
+
 	constructor() {
 		this.models = [];
 	}
@@ -38,19 +39,24 @@ export class SceneLoaderSaver extends DoLog {
 	/** @type {ModelSelector} */
 	#model_selector = null;
 
+	/** @type {Object} */
+	#MODELS_CONFIGS = null;
+
 	/**
 	 * @param {DoLog} log - The logger object in which this object will log messages.
 	 * @param {ModelSelector} model_selector - The model selector object responsible for managing the models in the scene.
+	 * @param {Object} MODELS_CONFIGS - The configurations for the models when loading them. To check the available configurations, see {@link FileLoader.load3DObject}.
 	 * @param {WebGL2RenderingContext} gl - The WebGL2 rendering context from which the models are being rendered.
 	 * @param {WebGLProgram} program - The WebGL program object used to render the models.
 	 */
-	constructor(log, model_selector, gl, program) {
+	constructor(log, model_selector, MODELS_CONFIGS, gl, program) {
 		super(log, 'SceneLoaderSaver> ');
 
 		const save_scene_input = document.getElementById(SceneLoaderSaver.#save_scene_button_id);
 		const load_scene_input = document.getElementById(SceneLoaderSaver.#load_scene_input_id);
 
 		this.#model_selector = model_selector;
+		this.#MODELS_CONFIGS = MODELS_CONFIGS;
 		this.#gl = gl;
 		this.#program = program;
 
@@ -97,7 +103,7 @@ export class SceneLoaderSaver extends DoLog {
 							model = original_model.duplicateModel();
 						} else {
 							// Model not loaded yet
-							model = await file_loader.load3DObject(m.model_path, this.#gl, this.#program);
+							model = await file_loader.load3DObject(m.model_path, this.#gl, this.#program, this.#MODELS_CONFIGS);
 							loaded_models_paths.push(m.model_path);
 						}
 

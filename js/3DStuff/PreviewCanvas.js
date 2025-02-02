@@ -74,11 +74,14 @@ export default class PreviewCanvas extends DoLog {
 
 		const projection_uniform = this.#gl.getUniformLocation(program, 'u_perspective_projection');
 		const enable_texture_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_texture');
+		const enable_lighting_uniform = this.#gl.getUniformLocation(this.#program, 'u_enable_lighting');
 
 		// Set projection matrix (all preview canvases have the same projection matrix)
 		this.#gl.uniformMatrix4fv(projection_uniform, false, projection_matrix);
 		// Disable texture (preview models don't have textures)
 		this.#gl.uniform1i(enable_texture_uniform, false);
+		// Disable lighting (preview models don't have lighting)
+		this.#gl.uniform1i(enable_lighting_uniform, false);
 
 		// Enable depth test and culling
 		this.#gl.enable(this.#gl.DEPTH_TEST);

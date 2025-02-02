@@ -52,7 +52,7 @@ export default class Model3D {
      * 
      * @param {string} name - The name of the model.
      * @param {string} model_path - The path to the model file (obj).
-     * @param {Object} parsed_obj_data - The parsed object data containing the geometries.
+     * @param {Object} parsed_obj_data - The parsed object data containing 'geometries', 'materialLibs', and 'configs'.
      * @param {Object} parsed_materials - The parsed materials.
      * @param {WebGL2RenderingContext} gl - The WebGL2 context in which the model will be rendered.
      * @param {WebGLProgram} program - The WebGL program.
@@ -74,7 +74,7 @@ export default class Model3D {
     /**
      * Creates the objects that make up the model.
      * 
-     * @param {Object} parsed_obj_data - The parsed object data.
+     * @param {Object} parsed_obj_data - The parsed object data. Contains 'geometries', 'materialLibs' and 'configs'.
      * @param {Object} parsed_materials - The parsed materials.
      * @param {WebGL2RenderingContext} gl - The WebGL2 context.
      * @param {WebGLProgram} program - The WebGL program.
@@ -83,6 +83,7 @@ export default class Model3D {
      */
     #createObjects(parsed_obj_data, parsed_materials, gl, program) {
         const geometries = parsed_obj_data.geometries;
+        const configs = parsed_obj_data.configs;
 
         for (let g in geometries) {
             // 'geometries' is an array of 'geometry'. This is a geometry object:
@@ -99,7 +100,8 @@ export default class Model3D {
 
             const data = geometries[g].data;
             const material = parsed_materials[geometries[g].material];
-            const obj = new Object3D(data, material, gl, program);
+            const obj = new Object3D(data, material, configs, gl, program);
+            
             this.objects.push(obj);
         }
     }

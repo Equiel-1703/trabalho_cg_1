@@ -1,4 +1,10 @@
-// This helper class only deals with 4x4 matrices and useful math functions for graphics
+import Vec4 from "./Vec4.js";
+
+/**
+ * A class that provides utility functions for 3D graphics math.
+ * 
+ * @class
+ */
 export default class GraphicsMath {
     /**
      * Converts degrees to radians.
@@ -18,6 +24,27 @@ export default class GraphicsMath {
      */
     static radToDeg(rad) {
         return rad * (180.0 / Math.PI);
+    }
+
+    /**
+     * Calculates the normal vector of a triangle given its vertices.
+     * 
+     * @param {Array<number>} v1 - The first vertex of the triangle.
+     * @param {Array<number>} v2 - The second vertex of the triangle.
+     * @param {Array<number>} v3 - The third vertex of the triangle.
+     * @returns {Array<number>} The normal vector of the triangle.
+     */
+    static calculateNormal(v1, v2, v3) {
+        const _v1 = new Vec4(v1[0], v1[1], v1[2], 0);
+        const _v2 = new Vec4(v2[0], v2[1], v2[2], 0);
+        const _v3 = new Vec4(v3[0], v3[1], v3[2], 0);
+
+        const e1 = _v2.subtract(_v1);
+        const e2 = _v3.subtract(_v1);
+        let normal = e1.crossProduct(e2);
+        normal = normal.normalize();
+
+        return [normal.x, normal.y, normal.z];
     }
 
     /**

@@ -26,9 +26,11 @@ export default class FileLoader extends DoLog {
      * @param {string} object_path - Path to the .obj file.
      * @param {WebGL2RenderingContext} gl - The WebGL2RenderingContext object.
      * @param {WebGLProgram} program - The WebGLProgram object.
+     * @param {Object} configs - (Optional) Configurations for the object processing. If it is not provided, the default values will be used. The properties accepted are:
+     * @param {boolean} configs.generate_normals - If true, the normals will be generated for the object even if they are present in the file. Default is false.
      * @returns {Model3D} - The 3D model.
      */
-    async load3DObject(object_path, gl, program) {
+    async load3DObject(object_path, gl, program, configs = null) {
         const response = await fetch(object_path);
 
         if (!response.ok) {
@@ -40,7 +42,10 @@ export default class FileLoader extends DoLog {
 
         const obj_parser = new OBJParser();
         const parsed_obj_data = obj_parser.parseOBJ(text);
+        // Adding configs to the parsed data
+        parsed_obj_data['configs'] = this.#processConfigs(configs);
 
+        // Processing materials
         const path_prefix = './objs/kit/';
         const obj_materials_src = [];
         for (let i = 0; i < parsed_obj_data.materialLibs.length; i++) {
@@ -68,5 +73,26 @@ export default class FileLoader extends DoLog {
 
     #getFileNameFromPath(path) {
         return path.split('\\').pop().split('/').pop().split('.')[0];
+    }
+
+    /**
+     * Receives the configurations object and processes it, returning a new object with the default values set for the missing properties.
+     * @param {Object} configs - The configurations object.
+     * @returns {Object} - The processed configurations object.
+     */
+    #processConfigs(configs) {
+        // Setup default values
+        let generate_normals = false;
+
+        if (configs) {
+            if (configs.generate_normals) {
+                generate_normals = configs.generate_normals;
+            }
+        }
+
+        // Return the processed configurations
+        return {
+            generate_normals: generate_normals
+        };
     }
 }

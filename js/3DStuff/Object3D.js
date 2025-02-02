@@ -1,4 +1,6 @@
+import GraphicsMath from "./GraphicsMath.js";
 import VAOFactory from "./VAOFactory.js";
+import Vec4 from "./Vec4.js";
 
 /**
  * Represents a 3D object.
@@ -36,18 +38,19 @@ export default class Object3D {
      * @param {number} material.opticalDensity - The optical density of the material.
      * @param {number} material.opacity - The opacity of the material.
      * @param {number} material.illum - The illumination model of the material.
+     * @param {Object} configs - The configurations for the object processing. To check the available configurations, see {@link FileLoader#load3DObject}.
      * @param {WebGLRenderingContext} gl - The WebGL rendering context.
      * @param {WebGLProgram} program - The WebGL program.
      * 
      * @constructor
      */
-    constructor(geometry_data, material, gl, program) {
-        this.#geometry_data = this.#processGeometryData(geometry_data);
+    constructor(geometry_data, material, configs, gl, program) {
+        this.#geometry_data = this.#processGeometryData(geometry_data, configs);
         this.#material = material;
 
-        const config = this.#createVAOConfig(this.#geometry_data, gl);
+        const vao_config = this.#createVAOConfig(this.#geometry_data, gl);
 
-        this.#vao = VAOFactory.buildVAO(config, gl, program);
+        this.#vao = VAOFactory.buildVAO(vao_config, gl, program);
         this.#vertex_count = this.#countVertices(geometry_data);
     }
 
@@ -144,26 +147,33 @@ export default class Object3D {
     }
 
     /**
-     * Processes the geometry data preparing the proper arrays formats for each attribute and filling missing attributes with default values.
+     * Processes the geometry data preparing the proper arrays formats for each attribute according to the configurations provided.
      * 
-     * @param {Object} geometry_data - The geometry data containing position, texcoord, normal, and color attributes.
+     * @param {Object} geometry_data - The geometry data containing position, texcoord, normal and color attributes.
+     * @param {Object} configs - The configurations for the object processing. To check the available configurations, see {@link FileLoader}.
      * @returns {Object} The geometry data with the proper arrays for each attribute.
      */
-    #processGeometryData(geometry_data) {
+    #processGeometryData(geometry_data, configs) {
         const processed_data = {};
 
-        // Prepare the correct array for position
-        const position = new Float32Array(geometry_data.position);
+        // Prepare the correct array for positions
+        const positions = new Float32Array(geometry_data.position);
 
-        // Check if texcoord and normal are present
+        // Check if texcoord are present
         if (!('texcoord' in geometry_data)) {
-            const texcoord_length = position.length / 3 * 2; // Calculate the length of the texcoord array
+            const texcoord_length = positions.length / 3 * 2; // Calculate the length of the texcoord array
             geometry_data.texcoord = new Array(texcoord_length).fill(0); // If not, create an array filled with zeros
         }
 
-        if (!('normal' in geometry_data)) {
-            const normal_length = position.length; // Calculate the length of the normal array
-            geometry_data.normal = new Array(normal_length).fill(0); // If not, create an array filled with zeros
+        // Check if we need to generate normals
+        if (configs.generate_normals) {
+            geometry_data.normal = this.#calculateNormals(positions); // If not, calculate the normals
+        }
+        // Check if normals are present
+        else if (!('normal' in geometry_data)) {
+            // If normals are not present and the user does not want to generate them, create an array filled with zeros.
+            const normal_length = positions.length; // Calculate the length of the normal array
+            geometry_data.normal = new Array(normal_length).fill(0); // Create an array filled with zeros
         }
 
         // Create the expected arrays format
@@ -172,8 +182,9 @@ export default class Object3D {
 
         // Check if color is present
         let color;
-        const color_expected_length = position.length / 3 * 4; // Calculate the expected length of the color array
+        const color_expected_length = positions.length / 3 * 4; // Calculate the expected length of the color array
 
+        // Processing color data
         if (!('color' in geometry_data) || geometry_data.color.length === 0) {
             // If not, create an array filled with random colors (just to have some color)
             color = new Float32Array(color_expected_length);
@@ -199,7 +210,8 @@ export default class Object3D {
             color = new Float32Array(geometry_data.color);
         }
 
-        processed_data.position = position;
+        // Assign the processed data to the return object
+        processed_data.position = positions;
         processed_data.texcoord = texcoord;
         processed_data.normal = normal;
         processed_data.color = color;
@@ -207,4 +219,46 @@ export default class Object3D {
         return processed_data;
     }
 
+    #calculateNormals(positions) {
+        const normals = new Array(positions.length).fill(0);
+
+        const vertexes_mapping = {}; // Mapping of vertexes ids to their vertex_info
+
+        for (let i = 0; i < positions.length; i += 9) {
+            const v1 = [positions[i], positions[i + 1], positions[i + 2]];
+            const v2 = [positions[i + 3], positions[i + 4], positions[i + 5]];
+            const v3 = [positions[i + 6], positions[i + 7], positions[i + 8]];
+
+            const normal = GraphicsMath.calculateNormal(v1, v2, v3);
+
+            const v1_id = v1.join(',');
+            const v2_id = v2.join(',');
+            const v3_id = v3.join(',');
+
+            const normal_vec4 = new Vec4(normal[0], normal[1], normal[2], 0);
+            for (let [id, k] of [[v1_id, i], [v2_id, i + 3], [v3_id, i + 6]]) {
+                if (id in vertexes_mapping) {
+                    vertexes_mapping[id].normal = vertexes_mapping[id].normal.add(normal_vec4);
+                    vertexes_mapping[id].indexes.push(k);
+                } else {
+                    vertexes_mapping[id] = {
+                        normal: normal_vec4,
+                        indexes: [k],
+                    };
+                }
+            }
+        }
+
+        // Normalize normals
+        for (let v in vertexes_mapping) {
+            const normal = vertexes_mapping[v].normal.normalize();
+            for (let i of vertexes_mapping[v].indexes) {
+                normals[i] = normal.x;
+                normals[i + 1] = normal.y;
+                normals[i + 2] = normal.z;
+            }
+        }
+
+        return normals;
+    }
 }

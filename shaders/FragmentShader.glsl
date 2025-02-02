@@ -10,8 +10,10 @@ out vec4 fragColor;
 uniform bool u_enable_texture;
 uniform bool u_enable_vertex_color;
 uniform bool u_enable_material_color;
+uniform bool u_enable_lighting;
 
 uniform vec3 u_material_color;
+uniform vec3 u_light_direction;
 uniform vec4 u_global_color;
 uniform sampler2D u_texture;
 
@@ -40,5 +42,12 @@ void main() {
         fragColor = vec4(fragColor.rgb / max, clamp(fragColor.a, 0.0f, 1.0f));
     } else {
         fragColor = vec4(fragColor.rgb, clamp(fragColor.a, 0.0f, 1.0f));
+    }
+
+    // Apply lighting (if enabled)
+    if(u_enable_lighting) {
+        float dot_product = dot(normalize(v_normal), normalize(u_light_direction));
+        float light = abs(dot_product);
+        fragColor = vec4(fragColor.rgb * light, fragColor.a);
     }
 }

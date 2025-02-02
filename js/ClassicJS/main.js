@@ -35,7 +35,10 @@ function setLightSource(light_direction, gl, program) {
     const ld_norm = light_direction.normalize();
 
     const light_uniform = gl.getUniformLocation(program, 'u_light_direction');
+    const enable_lighting_uniform = gl.getUniformLocation(program, 'u_enable_lighting');
+
     gl.uniform3fv(light_uniform, new Float32Array([ld_norm.x, ld_norm.y, ld_norm.z]));
+    gl.uniform1i(enable_lighting_uniform, true);
 }
 
 async function loadObjsList() {
@@ -75,6 +78,9 @@ function setupTextureUnit(gl, program, texture_unit_num) {
 const FPS = 60;
 const FPS_LIMIT = 1000 / FPS;
 const CAMERA_SPEED = 6; // Camera speed (pixels per second)
+const MODELS_CONFIGS = {
+    generate_normals: true
+};
 
 const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
 
@@ -333,7 +339,7 @@ async function updateModelsToRender() {
                 }
             } else {
                 // Model not loaded, let's load it
-                nm = await file_loader.load3DObject(mp, gl, program);
+                nm = await file_loader.load3DObject(mp, gl, program, MODELS_CONFIGS);
             }
 
             model_selector.addModelToList(nm);
