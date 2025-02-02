@@ -168,10 +168,10 @@ async function main() {
 
     // Setup model creator menu
     const objs_list = await loadObjsList();
-    model_creator = new ModelCreatorMenu(null, objs_list, v_shader, f_shader);
+    model_creator = new ModelCreatorMenu(log, objs_list, v_shader, f_shader);
     properties_editor = new PropertiesEditor(log);
     model_selector = new ModelSelector(log, properties_editor, gl);
-    const saver_loader = new SceneLoaderSaver(log, model_selector, gl, program);
+    const saver_loader = new SceneLoaderSaver(log, model_selector, MODELS_CONFIGS, gl, program);
 
     // ------------- Rendering setup -------------
     gl.enable(gl.DEPTH_TEST); // Enable depth test

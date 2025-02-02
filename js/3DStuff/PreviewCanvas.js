@@ -99,6 +99,13 @@ export default class PreviewCanvas extends DoLog {
 			this.#model.deleteModel(this.#gl);
 		}
 
+		if (!model_path) {
+			this.LOG('Model path is empty. Rendering disabled.', 'warning');
+			this.#model = null;
+			this.disableRender();
+			return;
+		}
+
 		this.#model = await this.#file_loader.load3DObject(model_path, this.#gl, this.#program);
 
 		this.enableRender();
@@ -115,6 +122,7 @@ export default class PreviewCanvas extends DoLog {
 
 	disableRender() {
 		this.#render_enabled = false;
+		this.#wgl_utils.clearCanvas(PreviewCanvas.#clearColor, this.#gl);
 	}
 
 	renderLoop(s_time) {

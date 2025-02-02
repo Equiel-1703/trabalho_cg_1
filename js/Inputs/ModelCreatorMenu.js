@@ -77,8 +77,12 @@ export default class ModelCreatorMenu extends DoLog {
 			const index = ModelCreatorMenu.#CANVAS_PREVIEW_IDS.indexOf(canvas_id);
 			const model_path = this.#displayed_models_path[index];
 
-			this.LOG('Selected model: ' + model_path, 'info');
-			this.#created_models.push(model_path);
+			if (model_path) {
+				this.LOG('Selected model: ' + model_path, 'info');
+				this.#created_models.push(model_path);
+			} else {
+				this.LOG('No model selected.', 'warning');
+			}
 		}
 
 		for (let i = 0; i < ModelCreatorMenu.#NUM_CANVAS_PREVIEW; i++) {
