@@ -274,6 +274,18 @@ export default class PropertiesEditor extends DoLog {
 	#readRotation() {
 		const rotation_ul = document.getElementById(PropertiesEditor.#rotation_prop);
 
+		const li_r_x = rotation_ul.querySelector('.x');
+		const li_r_y = rotation_ul.querySelector('.y');
+		const li_r_z = rotation_ul.querySelector('.z');
+
+		for (const li of [li_r_x, li_r_y, li_r_z]) {
+			const value = parseFloat(li.value);
+
+			if (Math.abs(value) >= 360) {
+				li.value = (value % 360).toString();
+			}
+		}
+
 		const r_x = GraphicsMath.degToRad(parseFloat(rotation_ul.querySelector('.x').value));
 		const r_y = GraphicsMath.degToRad(parseFloat(rotation_ul.querySelector('.y').value));
 		const r_z = GraphicsMath.degToRad(parseFloat(rotation_ul.querySelector('.z').value));
