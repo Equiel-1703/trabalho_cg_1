@@ -41,9 +41,6 @@ export default class FileLoader extends DoLog {
         const obj_parser = new OBJParser();
         const parsed_obj_data = obj_parser.parseOBJ(text);
 
-        console.log(parsed_obj_data);
-        console.log(object_path);
-
         const path_prefix = './objs/kit/';
         const obj_materials_src = [];
         for (let i = 0; i < parsed_obj_data.materialLibs.length; i++) {

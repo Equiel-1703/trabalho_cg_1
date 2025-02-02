@@ -13,34 +13,23 @@ import { Color } from './WebGLUtils.js';
  * @property {string} name - The name of the model. Must be unique.
  * @property {string} model_path - The path to the model file.
  * @property {Image} model_texture_image - The texture image of the model.
+ * @property {string} model_texture_id - The id of the texture image of the model.
  * @property {Color} global_color - The global color of the model.
  * @property {WebGL2Texture} model_texture - The WebGL2 texture of the model.
  * @property {Object} transformation_dict - A transformation dictionary with the properties: translation, rotation, and scale.
  * @property {Object3D[]} objects - The objects that make up the model.
  * 
- * @method getTransformationDict - Get the transformation dictionary of the model.
- * @method getTransformationMatrix - Get the transformation matrix of the model.    
- * @method setTransformation - Set the transformation matrix of the model.
- * @method getTextureProperties - Get the texture settings of the model.
- * @method getRenderableObjects - Get the renderable objects of the model.
- * @method getModelName - Get the name of the model.
- * @method getModelPath - Get the path to the model file.
- * @method setTexture - Set the texture image of the model.
- * @method clearTexture - Clear the texture of the model.
- * @method getTextureImage - Get the texture image of the model.
- * @method hasTexture - Check if the model has a texture.
- * @method setGlobalColor - Set the global color of the model.
- * @method getGlobalColor - Get the global color of the model.
- * @method renameModel - Rename the model.
- * @method deleteModel - This method iterates over all objects in the model and call deleteObject on each one.
- * @method duplicateModel - This method creates a new model with the same objects and transformation matrix as the current model.
- * @method getDuplicatesMapping - Get the duplicates mapping.
+ * @static @property {Object} models_duplicates_mapping - A mapping of models that have duplicates. The key is the model path and the value is an array of model names.
  */
 export default class Model3D {
+    /** @type {string} */
     #name = '';
+    /** @type {string} */
     #model_path = '';
     /** @type {Image} */
     #model_texture_image = null;
+    /** @type {string} */
+    #model_texture_id = '';
     /** @type {Color} */
     #global_color = new Color(0, 0, 0, 0); // Default color is transparent black
     /** @type {WebGL2Texture} */
@@ -52,10 +41,22 @@ export default class Model3D {
         rotation: { x: 0, y: 0, z: 0 },
         scale: { x: 1, y: 1, z: 1 }
     };
+    /** @type {Float32Array} */
     #transformation_matrix = GraphicsMath.createIdentityMatrix();
 
+    /** @type {Object3D[]} */
     static #models_duplicates_mapping = {};
 
+    /**
+     * Creates a new Model3D.
+     * 
+     * @param {string} name - The name of the model.
+     * @param {string} model_path - The path to the model file (obj).
+     * @param {Object} parsed_obj_data - The parsed object data containing the geometries.
+     * @param {Object} parsed_materials - The parsed materials.
+     * @param {WebGL2RenderingContext} gl - The WebGL2 context in which the model will be rendered.
+     * @param {WebGLProgram} program - The WebGL program.
+     */
     constructor(name, model_path, parsed_obj_data, parsed_materials, gl, program) {
         // Set the name of the model
         this.#name = name;
@@ -112,6 +113,11 @@ export default class Model3D {
         return this.#transformation_matrix;
     }
 
+    /**
+     * Get the transformation dictionary of the model.
+     * 
+     * @returns {Object} The transformation dictionary with the properties: translation, rotation, and scale.
+     */
     getTransformationDict() {
         return this.#transformation_dict;
     }
@@ -149,51 +155,72 @@ export default class Model3D {
      * @returns {Object} The texture settings of the model.
      */
     getTextureProperties() {
-        return { image: this.#model_texture_image, color: this.#global_color };
+        return {
+            image_id: this.#model_texture_id,
+            image_path: this.#model_texture_image !== null ? this.#model_texture_image.src : null,
+            color: this.#global_color
+        };
     }
 
     /**
      * Set the texture image of the model.
      * 
-     * @param {HTMLImageElement} texture_img - The texture image.
+     * @param {string} texture_img_path - The path to the texture image.
+     * @param {string} texture_img_id - The identifier of the texture image.
      * @param {WebGL2RenderingContext} gl - The WebGL2 context.
+     * 
+     * @returns {Promise} A promise that resolves when the texture is loaded successfully and rejects if there is an error loading the texture image.
      */
-    setTexture(texture_img, gl) {
-        // Revoke the object URL of the previous texture if it had one
-        if (this.#model_texture_image !== null) {
-            URL.revokeObjectURL(this.#model_texture_image.src);
+    async setTexture(texture_img_path, texture_img_id, gl) {
+        const return_promise = new Promise((resolve, reject) => {
+            // Revoke the object URL of the previous texture if it had one
+            if (this.#model_texture_image !== null) {
+                URL.revokeObjectURL(this.#model_texture_image.src);
 
-            gl.deleteTexture(this.#model_texture);
-        }
+                gl.deleteTexture(this.#model_texture);
+            }
 
-        this.#model_texture_image = texture_img;
+            // Set the new texture image id
+            this.#model_texture_id = texture_img_id;
 
-        // Create a new texture
-        this.#model_texture = gl.createTexture();
+            // Create a new texture
+            this.#model_texture_image = new Image();
+            this.#model_texture = gl.createTexture();
 
-        // Bind the texture to the active texture unit at bind point TEXTURE_2D
-        gl.bindTexture(gl.TEXTURE_2D, this.#model_texture);
+            // Bind the texture to the active texture unit at bind point TEXTURE_2D
+            gl.bindTexture(gl.TEXTURE_2D, this.#model_texture);
 
-        // Set the parameters so we can render any size image.
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            // Set the parameters so we can render any size image.
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-        // Upload the image into the texture only after it has loaded
-        this.#model_texture_image.onload = () => {
-            // Upload the image into the texture.
-            var mipLevel = 0;               // the largest mip
-            var internalFormat = gl.RGBA;   // format we want in the texture
-            var srcFormat = gl.RGBA;        // format of data we are supplying
-            var srcType = gl.UNSIGNED_BYTE  // type of data we are supplying
-            gl.texImage2D(gl.TEXTURE_2D,
-                mipLevel,
-                internalFormat,
-                srcFormat,
-                srcType,
-                this.#model_texture_image);
-        };
+            // Upload the image into the texture only after it has loaded
+            this.#model_texture_image.onload = () => {
+                var mipLevel = 0;               // the largest mip
+                var internalFormat = gl.RGBA;   // format we want in the texture
+                var srcFormat = gl.RGBA;        // format of data we are supplying
+                var srcType = gl.UNSIGNED_BYTE  // type of data we are supplying
+                gl.texImage2D(gl.TEXTURE_2D,
+                    mipLevel,
+                    internalFormat,
+                    srcFormat,
+                    srcType,
+                    this.#model_texture_image);
+
+                // After the image has been uploaded, we have resolved the promise
+                resolve('Texture loaded successfully');
+            };
+
+            // If there is an error loading the texture image, reject the promise
+            this.#model_texture_image.onerror = () => reject('Error loading texture image');
+
+            // Set the image source
+            this.#model_texture_image.src = texture_img_path;
+        });
+
+        return return_promise;
     }
 
     /**
@@ -209,8 +236,22 @@ export default class Model3D {
             gl.deleteTexture(this.#model_texture);
         }
 
+        // Remove all references to the previous texture
         this.#model_texture_image = null;
+        this.#model_texture_id = '';
         this.#model_texture = null;
+    }
+
+    /**
+     * Enable the texture of the model for renderering.
+     * 
+     * @param {WebGL2RenderingContext} gl - The WebGL2 context in which the model will be rendered.
+     */
+    enableTexture(gl) {
+        if (this.#model_texture !== null) {
+            // Bind the texture to the active texture unit at bind point TEXTURE_2D
+            gl.bindTexture(gl.TEXTURE_2D, this.#model_texture);
+        }
     }
 
     /**
@@ -219,7 +260,7 @@ export default class Model3D {
      * @returns {HTMLImageElement} The texture image.
      */
     getTextureImage() {
-        return this.#model_texture_image
+        return this.#model_texture_image;
     }
 
     /**
@@ -258,56 +299,78 @@ export default class Model3D {
         return this.objects;
     }
 
+    /**
+     * Returns the name of the model.
+     * 
+     * @returns {string} The name of the model.
+     */
     getModelName() {
         return this.#name;
     }
 
+    /**
+     * Returns the path to the model file (obj).
+     * 
+     * @returns {string} The path to the model file.
+     */
     getModelPath() {
         return this.#model_path;
     }
 
+    /**
+     * Rename the model. Updates the static mapping of duplicates if necessary.
+     * 
+     * @param {string} new_name - The new name of the model.
+     */
     renameModel(new_name) {
-        // Update the static mapping (if the model is or have duplicates)
-        if (this.#model_path in Model3D.#models_duplicates_mapping) {
+        // Update the static mapping (if the model is or have any duplicates)
+        if (Model3D.checkIfModelHasDuplicates(this.#model_path)) {
             // Find the model in the duplicates mapping and update it
             const index = Model3D.#models_duplicates_mapping[this.#model_path].indexOf(this.#name);
+
+            // Update the name in the mapping
             Model3D.#models_duplicates_mapping[this.#model_path][index] = new_name;
         }
 
-        // Now we can update the model name
+        // Now we can update the model name in the current object
         this.#name = new_name;
     }
 
     /**
      * This method iterates over all objects in the model and call deleteObject on each one, if the object doesn't have any duplicate in use.
-     * This should trigger the garbage collector to free up GPU memory. The internal objects array is also emptied.
+     * This should trigger the garbage collector to free up GPU memory. The internal objects array is also emptied after this and the texture is cleared (if any).
      * 
      * @param {WebGL2RenderingContext} gl - The WebGL2 context.
      */
     deleteModel(gl) {
         // Check if the model has duplicates
-        if (this.#model_path in Model3D.#models_duplicates_mapping) {
+        if (Model3D.checkIfModelHasDuplicates(this.#model_path)) {
+            // Get the duplicates of the current model
             const duplicates = Model3D.#models_duplicates_mapping[this.#model_path];
 
-            // If so, remove the current model from the mapping
+            // Remove the current model from the mapping
             const index = duplicates.indexOf(this.#name);
             duplicates.splice(index, 1);
 
+            // Clear the texture
+            this.clearTexture(gl);
+
             // Check if after removing the current model from the mapping, we still have duplicates
             if (duplicates.length > 0) {
-                // If so, return
+                // If we still have duplicates, we can't delete the entire model yet. Just return.
                 return;
             } else {
-                // If not, delete the key from the mapping
+                // If not, delete the key from the mapping and we'll proceed to delete the entire model
                 delete Model3D.#models_duplicates_mapping[this.#model_path];
             }
         }
 
-        // If the model doesn't have duplicates or we deleted all duplicates, delete the model
+        // Delete all objects in the model
         for (let i = 0; i < this.objects.length; i++) {
             this.objects[i].deleteObject(gl);
         }
 
+        // And empty the objects array
         this.objects = [];
     }
 
@@ -327,20 +390,38 @@ export default class Model3D {
         // Set new model's objects to the same objects as the current model
         new_model.objects = this.getRenderableObjects();
 
-        // Add entries to the static mapping
-        if (!(this.#model_path in Model3D.#models_duplicates_mapping)) {
+        // Add entries to the static mapping of duplicates if necessary
+        if (!Model3D.checkIfModelHasDuplicates(this.#model_path)) {
             Model3D.#models_duplicates_mapping[this.#model_path] = [];
         }
 
+        // Add entrie for the 'original' model if it's not already there
         if (!(Model3D.#models_duplicates_mapping[this.#model_path].includes(this.#name))) {
-            Model3D.#models_duplicates_mapping[new_model.#model_path].push(this.#name);
+            Model3D.#models_duplicates_mapping[this.#model_path].push(this.#name);
         }
 
-        Model3D.#models_duplicates_mapping[this.#model_path].push(new_model.#name);
+        // Add entrie for the new model
+        Model3D.#models_duplicates_mapping[new_model.#model_path].push(new_model.#name);
 
         return new_model;
     }
 
+    /**
+     * Check if a model has duplicates.
+     * 
+     * @param {string} model_path - The path to the model file.
+     * @returns {boolean} True if the model has duplicates, false otherwise.
+     */
+    static checkIfModelHasDuplicates(model_path) {
+        return model_path in Model3D.#models_duplicates_mapping;
+    }
+
+    /**
+     * Get the duplicates mapping.
+     * This mapping maps the model path to an array of model names that are duplicates of this model path.
+     * 
+     * @returns {Object} The duplicates mapping.
+     */
     static getDuplicatesMapping() {
         return Model3D.#models_duplicates_mapping;
     }

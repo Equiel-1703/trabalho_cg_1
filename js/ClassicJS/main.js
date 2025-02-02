@@ -64,10 +64,10 @@ async function loadObjsList() {
 function setupTextureUnit(gl, program, texture_unit_num) {
     // Get uniform location
     const texture_uniform = gl.getUniformLocation(program, 'u_texture');
-    gl.uniform1i(texture_uniform, texture_unit_num);
-
     // Activate texture unit 0
     gl.activeTexture(gl.TEXTURE0 + texture_unit_num);
+
+    gl.uniform1i(texture_uniform, texture_unit_num);
 }
 
 
@@ -79,10 +79,9 @@ const CAMERA_SPEED = 6; // Camera speed (pixels per second)
 const CLEAR_COLOR = new Color(0.4, 0.4, 0.4, 1.0); // Clear color (60% gray)
 
 let models_to_render = [];
-// This boy will keep track of the loaded models we have.
-// If we need to load a new model, we will check if it's already loaded.
-// If it is, we can create a new transform matrix for it and render it with the same buffers.
-let loaded_models_paths = [];
+
+/** @type {OutputLog} */
+let log = null;
 
 let gl = null;
 let program = null;
@@ -90,14 +89,18 @@ let wgl_utils = null;
 let camera = null;
 let camera_controls_obj = null;
 
+/** @type {FileLoader} */
 let file_loader = null;
+/** @type {ModelCreatorMenu} */
 let model_creator = null;
+/** @type {ModelSelector} */
 let model_selector = null;
+/** @type {PropertiesEditor} */
 let properties_editor = null;
 
 // ----------- MAIN FUNCTION --------------
 async function main() {
-    const log = initializeLog();
+    log = initializeLog();
 
     // Initialize user inputs
     camera_controls_obj = new CameraControls(log);
@@ -124,7 +127,7 @@ async function main() {
         throw new Error('Failed to create shaders.');
     }
 
-    log.success_log('main> Shaders created.');
+    log.success_log('main> WebGL shaders created.');
 
     // Creating program
     program = wgl_utils.createProgram(vertex_shader, fragment_shader);
@@ -150,6 +153,7 @@ async function main() {
 
     // Creating camera
     camera = new Camera(new Vec4(0, 0, -10, 1)); // By default, the camera is looking in the positive Z direction
+    // Here I set that if the user presses the space bar, the camera stats will be logged
     document.addEventListener('keydown', (e) => {
         if (e.key === ' ') {
             camera.logCameraStats(log);
@@ -225,8 +229,7 @@ async function renderCallBack(s_time) {
 
             if (texture_properties.set_texture) {
                 // Set texture
-                model.setTexture(texture_properties.image, gl);
-
+                await model.setTexture(texture_properties.image_path, texture_properties.image_id, gl);
             } else if (texture_properties.clear) {
                 // Clear texture
                 model.clearTexture(gl);
@@ -243,6 +246,8 @@ async function renderCallBack(s_time) {
         // Set texture (if any)
         if (model.hasTexture()) {
             gl.uniform1i(enable_texture_uniform, true);
+            // Enable material texture for rendering
+            model.enableTexture(gl);
         } else {
             gl.uniform1i(enable_texture_uniform, false);
         }
@@ -308,24 +313,27 @@ async function updateModelsToRender() {
     if (model_creator.hasNewModels()) {
         const new_models_paths = model_creator.getNewModels();
 
+        /** @type {Set<string>} */
+        let loaded_paths;
+
         for (let mp of new_models_paths) {
+            loaded_paths = model_selector.getLoadedModelsPaths();
+
             let nm = null;
 
             // Check if we already loaded this model
-            if (loaded_models_paths.includes(mp)) {
+            if (loaded_paths.has(mp)) {
                 // Model already loaded, let's duplicate it
                 for (const m of models_to_render) {
                     if (m.getModelPath() === mp) {
                         nm = m.duplicateModel();
-                        console.log('Model duplicated.');
-                        console.log(nm);
+                        log.log('main> Model "' + m.getModelName() + '" duplicated.');
                         break;
                     }
                 }
             } else {
                 // Model not loaded, let's load it
                 nm = await file_loader.load3DObject(mp, gl, program);
-                loaded_models_paths.push(mp);
             }
 
             model_selector.addModelToList(nm);

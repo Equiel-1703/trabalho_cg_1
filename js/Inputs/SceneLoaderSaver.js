@@ -107,8 +107,10 @@ export class SceneLoaderSaver extends DoLog {
 
 						this.#model_selector.addModelToList(model);
 					}
+
+					this.LOG('Scene "' + file.name + '" loaded successfully.', 'success');
 				} catch (error) {
-					this.LOG('Error loading scene: ' + error);
+					this.LOG('Error loading scene: ' + error, 'error');
 				}
 			}
 
@@ -126,9 +128,13 @@ export class SceneLoaderSaver extends DoLog {
 	saveScene(models_list) {
 		const scene = new Scene();
 
+		this.LOG('Saving scene with ' + models_list.length + ' models.');
+
 		for (const m of models_list) {
 			scene.addModel(m.getModelPath(), m.getModelName(), m.getTransformationDict(), m.getGlobalColor());
 		}
+
+		this.LOG('Scene saved successfully.', 'success');
 
 		return scene.getJSON();
 	}

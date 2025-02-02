@@ -15,6 +15,9 @@ export default class ModelSelector extends DoLog {
 	 */
 	#models_mapping = {};
 
+	/** @type {Set} */
+	#loaded_models_paths = new Set();
+
 	/** @type {HTMLUListElement} */
 	#model_selector_ul = null;
 
@@ -93,15 +96,26 @@ export default class ModelSelector extends DoLog {
 
 		const model_name = e.target.parentElement.textContent.slice(0, -1); // Remove the 'X' of the delete button
 		const model = this.#models_mapping[model_name];
+		const model_path = model.getModelPath();
 
 		if (model_name === this.#selected_model_name) {
 			this.#selected_model_name = null;
 		}
 
+		// Delete the model object
 		model.deleteModel(this.#gl);
-		delete this.#models_mapping[model_name];
-	}
 
+		// Clear the properties editor pane
+		this.#properties_editor.clearProperties();
+
+		// Delete the model from the mapping
+		delete this.#models_mapping[model_name];
+
+		// Update loaded models paths set if necessary
+		if (!Model3D.checkIfModelHasDuplicates(model_path)) {
+			this.#loaded_models_paths.delete(model_path);
+		}
+	}
 
 	/**
 	 * Add a model to the list of selectable models.
@@ -126,8 +140,10 @@ export default class ModelSelector extends DoLog {
 
 		// Add model to the mapping
 		this.#models_mapping[model_name] = model_element;
+		// Add the model path to the set of loaded models paths
+		this.#loaded_models_paths.add(model_element.getModelPath());
 
-		// Create the list item <li>
+		// Create the list item <li> for the selectable models list in the menu
 		const li = document.createElement('li');
 		const li_class = 'model_li';
 
@@ -137,7 +153,10 @@ export default class ModelSelector extends DoLog {
 		// Add behavior to the list item when clicked (model selected)
 		li.addEventListener('click', this.#modelSelected.bind(this));
 
+		// Append the list item to the list of models
 		this.#model_selector_ul.appendChild(li);
+
+		// Add the delete button to the list item
 		li.appendChild(this.#createDeleteButton());
 	}
 
@@ -150,9 +169,18 @@ export default class ModelSelector extends DoLog {
 		return Object.values(this.#models_mapping);
 	}
 
+	/**
+	 * Returns a set of all the paths of the loaded models. This is used for checking if a model is already loaded.
+	 * 
+	 * @returns {Set} - The set of unique paths of the loaded models.
+	 */
+	getLoadedModelsPaths() {
+		return this.#loaded_models_paths;
+	}
+
 
 	/**
-	 * Clear the list of all selectable models. It will delete ALL the models in the process.
+	 * Clear the list of all selectable models. It will delete ALL the loaded models in the process.
 	 */
 	clear3DModelsList() {
 		for (const model_name in this.#models_mapping) {
@@ -161,6 +189,7 @@ export default class ModelSelector extends DoLog {
 		}
 
 		this.#models_mapping = {};
+		this.#loaded_models_paths.clear();
 		this.#selected_model_name = null;
 		this.#model_selector_ul.innerHTML = '';
 	}
