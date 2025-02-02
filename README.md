@@ -4,7 +4,7 @@
 ### Overview
 This project is a 3D Scene Editor built using WebGL in JavaScript for my Computer Graphics course in the Federal University of Pelotas. This editor allows you to select different 3D models and create a scene, by translating, rotating, scaling and changing texture properties in the editor. You can also save and load your own scenes (textures images not included).
 
-The 3D models in the editor were made by **Kay Lousberg** in the "Mini-Game Variety Pack" I got on (itch.io)[https://kaylousberg.itch.io/kay-kit-mini-game-variety-pack]. All credits to him for the models.
+The 3D models in the editor were made by **Kay Lousberg** in the "Mini-Game Variety Pack" I got on [itch.io](https://kaylousberg.itch.io/kay-kit-mini-game-variety-pack). All credits to him for the models.
 
 ### Features
 - **Object Creation**: Add various 3D shapes from the Mini-Game Variety Pack.
@@ -25,16 +25,15 @@ The 3D models in the editor were made by **Kay Lousberg** in the "Mini-Game Vari
 - **HTML/CSS**: For the user interface.
 
 ### Contributing
-Contributions are welcome! Please,fell free to fork the repository and create a pull request with your changes.
+Contributions are welcome! Please, feel free to fork the repository and create a pull request with your changes.
 
 ### License
 This project is licensed under the GPL-3.0 License.
 
 ### Acknowledgements
-- Thanks to (WebGL 2 Fundamentals)[https://webgl2fundamentals.org/] for a great variety of good tutorials and tools.
-- Thanks to Etay Meiri from the (OGLDEV)[https://www.youtube.com/@OGLDEV] YouTube channel for all the great lectures explaining both theory and implementation logic of the OpenGL API.
+- Thanks to [WebGL 2 Fundamentals](https://webgl2fundamentals.org/) for a great variety of good tutorials and tools.
+- Thanks to Etay Meiri from the [OGLDEV](https://www.youtube.com/@OGLDEV) YouTube channel for all the great lectures explaining both theory and implementation logic of the OpenGL API.
 - Thanks to Kay Lousberg for the awesome free 3D pack.
 
 ### Contact
-For any inquiries, please contact me at (henrique.grdr@inf.ufpel.edu.br)[mailto:henrique.grdr@inf.ufpel.edu.br].
-
+For any inquiries, please contact me at [henrique.grdr@inf.ufpel.edu.br](mailto:henrique.grdr@inf.ufpel.edu.br).
