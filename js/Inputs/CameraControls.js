@@ -45,8 +45,6 @@ export default class CameraControls extends DoLog {
 			camera_move_direction: move_direction
 		};
 
-		console.log(`CamRot: ${rotation_vector.x}, ${rotation_vector.y} CamTranslation: ${move_direction.x}, ${move_direction.y}, ${move_direction.z}`);
-
 		// Return the values
 		return { status_active, controls_values };
 	}
