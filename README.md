@@ -1,6 +1,8 @@
 # Computer Graphics - Assignment 1
 ## 3D Scene Editor in WebGL
 
+![scene_editor_3d](https://github.com/user-attachments/assets/ab8e14e6-34e2-4bd1-a7d8-a29e9a478d94)
+
 ### Overview
 This project is a 3D Scene Editor built using the WebGL API in JavaScript for my Computer Graphics course at the Federal University of Pelotas. The editor allows users to select different 3D models and create a scene by translating, rotating, scaling, and modifying their texture properties. Additionally, users can save and load their own scenes (note: texture images are not included).
 
