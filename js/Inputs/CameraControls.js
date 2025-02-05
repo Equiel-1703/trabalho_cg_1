@@ -45,6 +45,8 @@ export default class CameraControls extends DoLog {
 			camera_move_direction: move_direction
 		};
 
+		console.log(`CamRot: ${rotation_vector.x}, ${rotation_vector.y} CamTranslation: ${move_direction.x}, ${move_direction.y}, ${move_direction.z}`);
+
 		// Return the values
 		return { status_active, controls_values };
 	}
@@ -71,7 +73,12 @@ export default class CameraControls extends DoLog {
 		const get_thumb_translation = () => {
 			if (target_stick.style.transform.length > 0) {
 				let transform_content = target_stick.style.transform.split('(')[1].split(')')[0].split(',');
-				return { x: parseFloat(transform_content[0]), y: parseFloat(transform_content[1]) };
+				
+				if (transform_content.length === 2) {
+					return { x: parseFloat(transform_content[0]), y: parseFloat(transform_content[1]) };
+				} else {
+					return { x: parseFloat(transform_content[0]), y: 0 };
+				}
 			} else {
 				return { x: 0, y: 0 };
 			}
